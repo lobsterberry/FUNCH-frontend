@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FUNCH Car Rental - หน้ารายการรถและตัวกรอง (Wireframe)</title>
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts Kanit / Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Kanit', 'Inter', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Kanit', sans-serif; }
+    /* Custom scrollbar for filter sidebar */
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background-color: #cbd5e1;
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
+
+  <!-- ================= TOP WIREFRAME NAVIGATOR BAR ================= -->
+  <aside aria-label="Wireframe Mode Banner" class="bg-slate-900 text-white text-xs sm:text-sm py-2 px-4 sticky top-0 z-50 shadow-md">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+      <div class="flex items-center space-x-2">
+        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-amber-400 text-slate-900 animate-pulse">
+          WIREFRAME PROTOTYPE
+        </span>
+        <span class="text-slate-300">ระบบเช่ารถยนต์ FUNCH (Assignment Scope)</span>
+      </div>
+      <div class="flex items-center space-x-2">
+        <span class="text-slate-400">เลือกดูหน้า:</span>
+        <a href="index.html" class="px-3 py-1 rounded bg-slate-700 hover:bg-slate-600 text-slate-200 transition">
+          ← หน้า 1: หน้าแรก (Home)
+        </a>
+        <a href="search.html" class="px-3 py-1 rounded bg-blue-600 text-white font-medium hover:bg-blue-700 transition">
+          หน้า 2: ค้นหารถ & Filter (Search Results)
+        </a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN HEADER / NAVBAR ================= -->
+  <header class="bg-white border-b border-slate-200 shadow-sm sticky top-[41px] z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <!-- Logo -->
+      <div class="flex items-center space-x-8">
+        <a href="index.html" class="flex items-center space-x-2">
+          <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold text-xl shadow-sm">
+            F
+          </div>
+          <div>
+            <div class="text-xl font-bold tracking-tight text-slate-900 flex items-center">
+              FUNCH <span class="text-blue-600 ml-1 text-base font-semibold">Drive</span>
+            </div>
+            <p class="text-[10px] text-slate-400 uppercase tracking-wider -mt-1">Global Car Rental</p>
+          </div>
+        </a>
+
+        <!-- Main Nav Links -->
+        <nav class="hidden md:flex items-center space-x-6 text-sm font-medium text-slate-600">
+          <a href="index.html" class="hover:text-blue-600 transition py-5">หน้าแรก</a>
+          <a href="search.html" class="text-blue-600 border-b-2 border-blue-600 py-5">ค้นหารถทั้งหมด</a>
+          <a href="index.html#pricing-rules-info" class="hover:text-blue-600 transition py-5 flex items-center gap-1">
+            <span>กฎการคิดราคา</span>
+            <span class="bg-blue-100 text-blue-700 text-[10px] px-1.5 py-0.5 rounded-full font-bold">8ชม./14:00น.</span>
+          </a>
+        </nav>
+      </div>
+
+      <!-- Right Actions -->
+      <div class="flex items-center space-x-3">
+        <!-- Currency Selector -->
+        <div class="hidden sm:flex items-center border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-700 bg-slate-50">
+          <span class="mr-1.5 text-slate-400">สกุลเงิน:</span>
+          <select class="bg-transparent font-semibold focus:outline-none cursor-pointer">
+            <option value="THB" selected>THB (฿)</option>
+            <option value="JPY">JPY (¥)</option>
+            <option value="USD">USD ($)</option>
+            <option value="EUR">EUR (€)</option>
+          </select>
+        </div>
+
+        <button class="hidden sm:flex items-center space-x-1 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 hover:bg-slate-100">
+          <span>🇯🇵</span>
+          <span class="font-medium">โตเกียว</span>
+        </button>
+
+        <a href="#modal-auth" onclick="openBookingModal('login')" class="text-sm font-medium text-slate-700 hover:text-blue-600 px-3 py-1.5">เข้าสู่ระบบ</a>
+        <a href="#modal-auth" onclick="openBookingModal('register')" class="text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-lg transition shadow-sm">
+          สมัครสมาชิก
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= SEARCH CRITERIA SUMMARY STRIP (Top Bar) ================= -->
+  <section class="bg-white border-b border-slate-200 shadow-sm py-3.5 px-4 sm:px-6 lg:px-8 sticky top-[105px] z-30">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs sm:text-sm">
+      
+      <!-- Current Search Criteria Summary -->
+      <div class="flex flex-wrap items-center gap-2 sm:gap-4 text-slate-700">
+        <!-- Destination Country & City -->
+        <div class="flex items-center space-x-1.5 bg-blue-50 text-blue-800 px-3 py-1.5 rounded-lg border border-blue-200/80 font-medium">
+          <span class="text-base">🇯🇵</span>
+          <span class="font-bold">ญี่ปุ่น:</span>
+          <span>สนามบินฮาเนดะ โตเกียว (HND)</span>
+        </div>
+
+        <!-- Rental Period -->
+        <div class="flex items-center space-x-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg font-medium text-slate-700">
+          <span>📅</span>
+          <span>20 พ.ย. 2026 (10:00)</span>
+          <span class="text-slate-400">➔</span>
+          <span>22 พ.ย. 2026 (15:00)</span>
+        </div>
+
+        <!-- Calculated Duration Tag (Pricing Rule Alert) -->
+        <div class="flex items-center space-x-1.5 bg-amber-50 text-amber-900 border border-amber-200 px-3 py-1.5 rounded-lg text-xs font-semibold">
+          <span>⏱️</span>
+          <span>รวม: 2 วัน 5 ชั่วโมง</span>
+          <span class="bg-amber-200/80 text-amber-900 text-[10px] px-1.5 py-0.5 rounded ml-1">
+            คิดเป็น 3 วันเต็ม (คืนเกิน 14:00 น.)
+          </span>
+        </div>
+      </div>
+
+      <!-- Edit / Filter Toggle Actions -->
+      <div class="flex items-center space-x-2 shrink-0">
+        <button id="toggle-mobile-filter" class="md:hidden flex items-center space-x-1.5 px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 font-medium">
+          <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+          <span>ตัวกรอง (Filters)</span>
+        </button>
+        <button onclick="alert('จำลองการเปิดฟอร์มแก้ไขวันเวลาและสถานที่ค้นหา')" class="flex items-center space-x-1 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium transition text-xs">
+          <span>✏️</span>
+          <span>แก้ไขการค้นหา</span>
+        </button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ================= MAIN TWO-COLUMN CONTENT LAYOUT ================= -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-1">
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+
+      <!-- ================= LEFT SIDEBAR: FILTERS SECTION (ด้านซ้ายมีส่วนของการ filter) ================= -->
+      <aside id="filter-sidebar" class="md:col-span-4 lg:col-span-3 bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-6 md:sticky md:top-[170px] max-h-[calc(100vh-190px)] overflow-y-auto custom-scroll">
+        
+        <!-- Filter Header -->
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div class="flex items-center space-x-2">
+            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+            </svg>
+            <h2 class="font-bold text-slate-900 text-base">ตัวกรองเพิ่มเติม</h2>
+          </div>
+          <button type="button" class="text-xs text-blue-600 hover:text-blue-700 font-medium">
+            ล้างตัวกรอง
+          </button>
+        </div>
+
+        <!-- 1. Country & City Filter (แยกตามประเทศ) -->
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <label class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+              <span>🌏</span>
+              <span>ประเทศและเมืองปลายทาง</span>
+            </label>
+            <span class="text-[10px] text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">Assignment Scope</span>
+          </div>
+          <select class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs font-medium text-slate-800 focus:ring-1 focus:ring-blue-500">
+            <option value="JP" selected>🇯🇵 ญี่ปุ่น (Japan)</option>
+            <option value="TH">🇹🇭 ไทย (Thailand)</option>
+            <option value="DE">🇩🇪 เยอรมนี (Germany)</option>
+            <option value="GB">🇬🇧 สหราชอาณาจักร (UK)</option>
+            <option value="US">🇺🇸 สหรัฐอเมริกา (USA)</option>
+            <option value="SG">🇸🇬 สิงคโปร์ (Singapore)</option>
+          </select>
+
+          <!-- City Checkboxes for Current Country -->
+          <div class="space-y-1.5 pt-1 pl-1 text-xs text-slate-600">
+            <label class="flex items-center justify-between cursor-pointer hover:text-blue-600">
+              <span class="flex items-center space-x-2">
+                <input type="checkbox" checked class="rounded text-blue-600 focus:ring-blue-500">
+                <span>โตเกียว (Tokyo)</span>
+              </span>
+              <span class="text-slate-400 text-[11px]">18</span>
+            </label>
+            <label class="flex items-center justify-between cursor-pointer hover:text-blue-600">
+              <span class="flex items-center space-x-2">
+                <input type="checkbox" class="rounded text-blue-600 focus:ring-blue-500">
+                <span>โอซาก้า (Osaka)</span>
+              </span>
+              <span class="text-slate-400 text-[11px]">12</span>
+            </label>
+            <label class="flex items-center justify-between cursor-pointer hover:text-blue-600">
+              <span class="flex items-center space-x-2">
+                <input type="checkbox" class="rounded text-blue-600 focus:ring-blue-500">
+                <span>ฟุกุโอกะ (Fukuoka)</span>
+              </span>
+              <span class="text-slate-400 text-[11px]">8</span>
+            </label>
+            <label class="flex items-center justify-between cursor-pointer hover:text-blue-600">
+              <span class="flex items-center space-x-2">
+                <input type="checkbox" class="rounded text-blue-600 focus:ring-blue-500">
+                <span>ฮอกไกโด (Hokkaido)</span>
+              </span>
+              <span class="text-slate-400 text-[11px]">14</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 2. Price Range (รายวัน / รายชั่วโมง) -->
+        <div class="space-y-3 pt-3 border-t border-slate-100">
+          <div class="flex items-center justify-between">
+            <label class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+              <span>💰</span>
+              <span>ช่วงราคา</span>
+            </label>
+            <!-- Toggle Day vs Hour -->
+            <div class="inline-flex rounded-lg bg-slate-100 p-0.5 text-[10px] font-medium">
+              <button class="px-2 py-0.5 rounded-md bg-white text-blue-600 font-bold shadow-xs">รายวัน</button>
+              <button class="px-2 py-0.5 rounded-md text-slate-600">ราย ชม.</button>
+            </div>
+          </div>
+          <div class="space-y-2">
+            <input type="range" min="800" max="8000" value="4000" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+            <div class="flex items-center justify-between text-xs text-slate-600 font-medium">
+              <span>฿800</span>
+              <span class="text-blue-600 font-bold">฿1,000 - ฿4,000 / วัน</span>
+              <span>฿8,000+</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Car Types / Category -->
+        <div class="space-y-2.5 pt-3 border-t border-slate-100">
+          <label class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+            <span>🚗</span>
+            <span>ประเภทรถยนต์</span>
+          </label>
+          <div class="space-y-1.5 text-xs text-slate-600">
+            <label class="flex items-center justify-between cursor-pointer hover:text-blue-600">
+              <span class="flex items-center space-x-2">
+                <input type="checkbox" checked class="rounded text-blue-600 focus:ring-blue-500">
+                <span>SUV / Crossover</span>
+              </span>
+              <span class="text-slate-400 text-[11px]">7</span>
+            </label>
+            <label class="flex items-center justify-between cursor-pointer hover:text-blue-600">
+              <span class="flex items-center space-x-2">
+                <input type="checkbox" checked class="rounded text-blue-600 focus:ring-blue-500">
+                <span>Sedan (เก๋ง 4 ประตู)</span>
+              </span>
+              <span class="text-slate-400 text-[11px]">5</span>
+            </label>
+            <label class="flex items-center justify-between cursor-pointer hover:text-blue-600">
+              <span class="flex items-center space-x-2">
+                <input type="checkbox" class="rounded text-blue-600 focus:ring-blue-500">
+                <span>MPV / รถตู้ครอบครัว 7 ที่นั่ง</span>
+              </span>
+              <span class="text-slate-400 text-[11px]">3</span>
+            </label>
+            <label class="flex items-center justify-between cursor-pointer hover:text-blue-600">
+              <span class="flex items-center space-x-2">
+                <input type="checkbox" class="rounded text-blue-600 focus:ring-blue-500">
+                <span>EV ไฟฟ้า 100%</span>
+              </span>
+              <span class="text-slate-400 text-[11px]">4</span>
+            </label>
+            <label class="flex items-center justify-between cursor-pointer hover:text-blue-600">
+              <span class="flex items-center space-x-2">
+                <input type="checkbox" class="rounded text-blue-600 focus:ring-blue-500">
+                <span>Eco Car ประหยัดพลังงาน</span>
+              </span>
+              <span class="text-slate-400 text-[11px]">6</span>
+            </label>
+            <label class="flex items-center justify-between cursor-pointer hover:text-blue-600">
+              <span class="flex items-center space-x-2">
+                <input type="checkbox" class="rounded text-blue-600 focus:ring-blue-500">
+                <span>Luxury รถหรูระดับพรีเมียม</span>
+              </span>
+              <span class="text-slate-400 text-[11px]">2</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 4. Steering Side (สำหรับระบบจองทั่วโลก) -->
+        <div class="space-y-2.5 pt-3 border-t border-slate-100">
+          <label class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center justify-between">
+            <span class="flex items-center gap-1.5">
+              <span>☸️</span>
+              <span>ตำแหน่งพวงมาลัย</span>
+            </span>
+            <span class="text-[10px] text-slate-400">กฎจราจร</span>
+          </label>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <label class="flex items-center space-x-1.5 p-2 rounded-lg border border-blue-300 bg-blue-50/50 cursor-pointer">
+              <input type="radio" name="steering" checked class="text-blue-600">
+              <span class="font-medium text-blue-900">พวงมาลัยขวา</span>
+            </label>
+            <label class="flex items-center space-x-1.5 p-2 rounded-lg border border-slate-200 hover:bg-slate-50 cursor-pointer">
+              <input type="radio" name="steering" class="text-blue-600">
+              <span class="font-medium text-slate-700">พวงมาลัยซ้าย</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 5. Transmission (ระบบเกียร์) -->
+        <div class="space-y-2.5 pt-3 border-t border-slate-100">
+          <label class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+            <span>⚙️</span>
+            <span>ระบบเกียร์</span>
+          </label>
+          <div class="space-y-1.5 text-xs text-slate-600">
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" checked class="rounded text-blue-600">
+              <span>เกียร์อัตโนมัติ (Automatic / e-CVT)</span>
+            </label>
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" class="rounded text-blue-600">
+              <span>เกียร์ธรรมดา (Manual)</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 6. Seating Capacity (จำนวนที่นั่ง) -->
+        <div class="space-y-2.5 pt-3 border-t border-slate-100">
+          <label class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+            <span>👥</span>
+            <span>จำนวนผู้โดยสาร</span>
+          </label>
+          <div class="grid grid-cols-3 gap-1.5 text-xs text-center font-medium">
+            <button class="py-1.5 px-2 rounded-lg border border-blue-500 bg-blue-50 text-blue-700">4-5 ที่นั่ง</button>
+            <button class="py-1.5 px-2 rounded-lg border border-slate-200 text-slate-600 hover:border-slate-300">7 ที่นั่ง</button>
+            <button class="py-1.5 px-2 rounded-lg border border-slate-200 text-slate-600 hover:border-slate-300">8+ ที่นั่ง</button>
+          </div>
+        </div>
+
+        <!-- 7. Fuel / Energy Type -->
+        <div class="space-y-2.5 pt-3 border-t border-slate-100">
+          <label class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+            <span>⛽</span>
+            <span>ประเภทพลังงาน</span>
+          </label>
+          <div class="space-y-1.5 text-xs text-slate-600">
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" checked class="rounded text-blue-600">
+              <span>ไฮบริด (HEV / PHEV)</span>
+            </label>
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" class="rounded text-blue-600">
+              <span>ไฟฟ้า 100% (BEV)</span>
+            </label>
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" checked class="rounded text-blue-600">
+              <span>เบนซิน (Gasoline)</span>
+            </label>
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" class="rounded text-blue-600">
+              <span>ดีเซล (Diesel)</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 8. Options & Extra Features -->
+        <div class="space-y-2.5 pt-3 border-t border-slate-100">
+          <label class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+            <span>✨</span>
+            <span>ออปชั่นและคุณสมบัติเด่น</span>
+          </label>
+          <div class="space-y-1.5 text-xs text-slate-600">
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" checked class="rounded text-blue-600">
+              <span>ระบบนำทาง GPS รองรับภาษาอังกฤษ</span>
+            </label>
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" checked class="rounded text-blue-600">
+              <span>Apple CarPlay / Android Auto</span>
+            </label>
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" class="rounded text-blue-600">
+              <span>กล้องมองรอบทิศทาง 360°</span>
+            </label>
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" checked class="rounded text-blue-600">
+              <span>บัตรทางด่วน ETC Card ฟรี</span>
+            </label>
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" class="rounded text-blue-600">
+              <span>รวมประกันภัยชั้น 1 ไม่คิดค่าเสียหายส่วนแรก</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Filter Action Buttons -->
+        <div class="pt-4 border-t border-slate-100 space-y-2">
+          <button class="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-md transition">
+            ใช้ตัวกรอง (18 คัน)
+          </button>
+        </div>
+
+      </aside>
+
+      <!-- ================= RIGHT MAIN CONTENT: SEARCH RESULTS LIST ================= -->
+      <main class="md:col-span-8 lg:col-span-9 space-y-4">
+        
+        <!-- Results Bar: Count & Sorting -->
+        <div class="bg-white rounded-xl border border-slate-200 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+          <div>
+            <div class="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <span>พบรถว่างทั้งหมด <span class="text-blue-600">18 คัน</span></span>
+              <span class="text-xs font-normal text-slate-500">ใน โตเกียว (สนามบินฮาเนดะ)</span>
+            </div>
+            <!-- Active filter tags -->
+            <div class="flex flex-wrap items-center gap-1.5 mt-1.5">
+              <span class="inline-flex items-center bg-slate-100 text-slate-700 text-[11px] px-2 py-0.5 rounded-md">
+                🇯🇵 ญี่ปุ่น <button class="ml-1 text-slate-400 hover:text-slate-600">✕</button>
+              </span>
+              <span class="inline-flex items-center bg-slate-100 text-slate-700 text-[11px] px-2 py-0.5 rounded-md">
+                เกียร์อัตโนมัติ <button class="ml-1 text-slate-400 hover:text-slate-600">✕</button>
+              </span>
+              <span class="inline-flex items-center bg-slate-100 text-slate-700 text-[11px] px-2 py-0.5 rounded-md">
+                พวงมาลัยขวา <button class="ml-1 text-slate-400 hover:text-slate-600">✕</button>
+              </span>
+            </div>
+          </div>
+
+          <!-- Sort dropdown & View switches -->
+          <div class="flex items-center space-x-3 shrink-0 text-xs">
+            <div class="flex items-center space-x-1.5">
+              <span class="text-slate-500">จัดเรียงตาม:</span>
+              <select class="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 font-medium text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer">
+                <option value="recommended">แนะนำ (ความนิยมสูงสุด)</option>
+                <option value="price_asc">ราคา: ต่ำสุดไปสูงสุด</option>
+                <option value="price_desc">ราคา: สูงสุดไปต่ำสุด</option>
+                <option value="rating">คะแนนรีวิวสูงสุด</option>
+              </select>
+            </div>
+
+            <!-- View Toggle (Grid / List) -->
+            <div class="hidden sm:flex items-center border border-slate-200 rounded-lg p-0.5 bg-slate-50">
+              <button class="p-1.5 rounded-md bg-white shadow-xs text-blue-600" title="มุมมองแนวนอน (List)">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+              </button>
+              <button class="p-1.5 rounded-md text-slate-400 hover:text-slate-600" title="มุมมองการ์ด (Grid)">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pricing Rules Calculation Context Banner -->
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200/80 rounded-xl p-3 sm:p-4 text-xs flex items-center justify-between gap-3">
+          <div class="flex items-center space-x-2.5">
+            <span class="text-blue-600 text-xl shrink-0">💡</span>
+            <div>
+              <span class="font-bold text-blue-900">การคำนวณราคาทริปนี้:</span>
+              <span class="text-slate-700 ml-1">
+                คุณเลือกระยะเวลา 2 วัน 5 ชม. แต่เนื่องจากเวลาคืนรถคือ <strong>15:00 น. (เกิน 14:00 น.)</strong> ระบบจะคำนวณราคาเท่ากับ <strong>3 วันเต็ม</strong> ตามเกณฑ์มาตรฐาน
+              </span>
+            </div>
+          </div>
+          <span class="hidden lg:inline-block shrink-0 px-2.5 py-1 bg-white border border-blue-200 rounded-lg text-blue-700 font-bold text-[11px]">
+            โปร่งใส ไม่มีชาร์จแฝง
+          </span>
+        </div>
+
+        <!-- ================= CAR RESULTS LIST (Items) ================= -->
+        <div class="space-y-4">
+
+          <!-- CAR ITEM 1: Toyota Harrier Hybrid -->
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition p-4 sm:p-5 flex flex-col lg:flex-row gap-5">
+            <!-- Left: Car Image & Badges -->
+            <div class="lg:w-64 shrink-0 flex flex-col justify-between">
+              <div class="relative bg-slate-100 rounded-xl h-44 flex items-center justify-center p-3 overflow-hidden">
+                <span class="absolute top-2 left-2 bg-white/90 text-slate-800 text-[10px] font-bold px-2 py-0.5 rounded shadow-xs">
+                  🇯🇵 ญี่ปุ่น (Tokyo)
+                </span>
+                <span class="absolute top-2 right-2 bg-blue-600 text-white text-[10px] font-semibold px-2 py-0.5 rounded">
+                  SUV Premium
+                </span>
+                <!-- SVG Vector Placeholder -->
+                <div class="text-center">
+                  <svg class="w-36 h-20 text-slate-700 mx-auto" viewBox="0 0 100 60" fill="currentColor">
+                    <path d="M10,35 Q15,20 30,18 L60,18 Q75,18 85,28 L95,33 Q98,35 98,40 L98,44 Q98,46 95,46 L90,46 A8,8 0 0,1 74,46 L36,46 A8,8 0 0,1 20,46 L10,46 Q8,46 8,42 L8,38 Q8,35 10,35 Z M28,48 A5,5 0 1,0 28,38 A5,5 0 0,0 28,48 Z M82,48 A5,5 0 1,0 82,38 A5,5 0 0,0 82,48 Z" opacity="0.85"/>
+                    <rect x="33" y="21" width="18" height="11" rx="2" fill="#fff" opacity="0.6"/>
+                    <rect x="54" y="21" width="18" height="11" rx="2" fill="#fff" opacity="0.6"/>
+                  </svg>
+                  <span class="text-[11px] text-slate-400 font-mono">Toyota Harrier Hybrid 2024</span>
+                </div>
+                <span class="absolute bottom-2 left-2 bg-slate-900/80 text-white text-[9px] px-1.5 py-0.5 rounded">
+                  พวงมาลัยขวา (RHD)
+                </span>
+              </div>
+              <div class="text-[11px] text-center text-slate-400 mt-2">
+                ผู้ให้บริการ: Times Car Rental Haneda
+              </div>
+            </div>
+
+            <!-- Center: Specs & Options -->
+            <div class="flex-1 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between">
+                  <h3 class="text-lg font-bold text-slate-900 hover:text-blue-600 cursor-pointer">
+                    Toyota Harrier Hybrid 2.5 (2024)
+                  </h3>
+                  <div class="flex items-center text-amber-500 font-bold text-xs">
+                    ★ 4.9 <span class="text-slate-400 font-normal ml-1">(142)</span>
+                  </div>
+                </div>
+                <p class="text-xs text-slate-500 mt-0.5">เครื่องยนต์ไฮบริด 2.5L นั่งสบาย พื้นที่เก็บสัมภาระกว้างขวาง</p>
+
+                <!-- Key Specs Grid -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 my-3 text-xs text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                  <div class="flex items-center space-x-1.5">
+                    <span>👥</span>
+                    <span>5 ที่นั่ง</span>
+                  </div>
+                  <div class="flex items-center space-x-1.5">
+                    <span>⚙️</span>
+                    <span>อัตโนมัติ E-Four</span>
+                  </div>
+                  <div class="flex items-center space-x-1.5">
+                    <span>🧳</span>
+                    <span>กระเป๋า 3 ใบใหญ่</span>
+                  </div>
+                  <div class="flex items-center space-x-1.5">
+                    <span>⛽</span>
+                    <span>ไฮบริด (ประหยัด)</span>
+                  </div>
+                </div>
+
+                <!-- Feature Badges -->
+                <div class="flex flex-wrap gap-1.5">
+                  <span class="bg-blue-50 text-blue-700 text-[10px] font-medium px-2 py-0.5 rounded border border-blue-100">GPS เมนูอังกฤษ</span>
+                  <span class="bg-blue-50 text-blue-700 text-[10px] font-medium px-2 py-0.5 rounded border border-blue-100">กล้องรอบทิศทาง 360°</span>
+                  <span class="bg-blue-50 text-blue-700 text-[10px] font-medium px-2 py-0.5 rounded border border-blue-100">ETC Card Reader</span>
+                  <span class="bg-emerald-50 text-emerald-700 text-[10px] font-medium px-2 py-0.5 rounded border border-emerald-100">รวมประกันภัยพื้นฐาน</span>
+                </div>
+              </div>
+
+              <!-- Admin Verification / Instant Notice -->
+              <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                <span class="flex items-center text-emerald-600 font-medium">
+                  <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                  รถพร้อมส่งมอบ • อนุมัติผ่านระบบหลังบ้านไวใน 15 นาที
+                </span>
+                <span class="text-[11px] text-blue-600 font-medium cursor-pointer hover:underline">
+                  ดูรายละเอียดรถทั้งหมด →
+                </span>
+              </div>
+            </div>
+
+            <!-- Right: Pricing Engine & Booking CTA Box -->
+            <div class="lg:w-64 shrink-0 bg-slate-50 rounded-xl p-4 border border-slate-200/80 flex flex-col justify-between">
+              <div>
+                <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">
+                  อัตราค่าบริการ
+                </div>
+                <div class="flex items-baseline justify-between text-xs border-b border-slate-200 pb-2">
+                  <span class="text-slate-600">รายวัน:</span>
+                  <span class="font-bold text-slate-900 text-sm">฿2,200 <span class="font-normal text-[10px] text-slate-500">/วัน</span></span>
+                </div>
+                <div class="flex items-baseline justify-between text-xs border-b border-slate-200 py-1.5">
+                  <span class="text-slate-600">รายชั่วโมง:</span>
+                  <span class="font-bold text-blue-600 text-xs">฿280 <span class="font-normal text-[10px] text-slate-500">/ชม.</span></span>
+                </div>
+
+                <!-- Total Trip Price Calculation (3 Days applied) -->
+                <div class="mt-3 p-2 bg-white rounded-lg border border-blue-200">
+                  <div class="text-[10px] text-slate-500 flex justify-between">
+                    <span>คำนวณตามทริป (3 วัน):</span>
+                    <span class="line-through text-slate-400">฿7,200</span>
+                  </div>
+                  <div class="text-xl font-bold text-blue-600">
+                    ฿6,600
+                  </div>
+                  <div class="text-[9px] text-slate-500 mt-0.5">
+                    *เกิน 14:00 น. ปัดเป็น 3 วันเต็ม
+                  </div>
+                </div>
+              </div>
+
+              <!-- CTA Buttons with Modal Trigger -->
+              <div class="mt-3 space-y-2">
+                <button onclick="openBookingModal('Toyota Harrier Hybrid 2.5', '฿6,600', '3 วัน')" class="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition shadow-sm flex items-center justify-center space-x-1">
+                  <span>จองรถคันนี้ทันที</span>
+                  <span>→</span>
+                </button>
+                <div class="text-[10px] text-center text-slate-500">
+                  เข้าสู่ระบบแล้วจองทันที หรือ สมัครใหม่พร้อมจอง
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CAR ITEM 2: Nissan Serena e-POWER Highway Star (7-Seats MPV) -->
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition p-4 sm:p-5 flex flex-col lg:flex-row gap-5">
+            <div class="lg:w-64 shrink-0 flex flex-col justify-between">
+              <div class="relative bg-slate-100 rounded-xl h-44 flex items-center justify-center p-3 overflow-hidden">
+                <span class="absolute top-2 left-2 bg-white/90 text-slate-800 text-[10px] font-bold px-2 py-0.5 rounded shadow-xs">
+                  🇯🇵 ญี่ปุ่น (Tokyo)
+                </span>
+                <span class="absolute top-2 right-2 bg-amber-600 text-white text-[10px] font-semibold px-2 py-0.5 rounded">
+                  7 ที่นั่ง MPV
+                </span>
+                <div class="text-center">
+                  <svg class="w-36 h-20 text-slate-700 mx-auto" viewBox="0 0 100 60" fill="currentColor">
+                    <path d="M10,38 Q12,18 28,16 L74,16 Q85,16 92,26 L96,35 Q98,38 98,42 L98,45 Q98,46 95,46 L89,46 A8,8 0 0,1 73,46 L35,46 A8,8 0 0,1 19,46 L10,46 Q8,46 8,42 Z M27,48 A5,5 0 1,0 27,38 A5,5 0 0,0 27,48 Z M81,48 A5,5 0 1,0 81,38 A5,5 0 0,0 81,48 Z" opacity="0.85"/>
+                    <rect x="30" y="20" width="18" height="12" rx="2" fill="#fff" opacity="0.6"/>
+                    <rect x="51" y="20" width="18" height="12" rx="2" fill="#fff" opacity="0.6"/>
+                    <rect x="72" y="20" width="14" height="12" rx="2" fill="#fff" opacity="0.6"/>
+                  </svg>
+                  <span class="text-[11px] text-slate-400 font-mono">Nissan Serena e-POWER</span>
+                </div>
+                <span class="absolute bottom-2 left-2 bg-slate-900/80 text-white text-[9px] px-1.5 py-0.5 rounded">
+                  พวงมาลัยขวา (RHD)
+                </span>
+              </div>
+              <div class="text-[11px] text-center text-slate-400 mt-2">
+                ผู้ให้บริการ: Orix Rent-A-Car Tokyo
+              </div>
+            </div>
+
+            <div class="flex-1 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between">
+                  <h3 class="text-lg font-bold text-slate-900 hover:text-blue-600 cursor-pointer">
+                    Nissan Serena e-POWER Highway Star (2024)
+                  </h3>
+                  <div class="flex items-center text-amber-500 font-bold text-xs">
+                    ★ 4.88 <span class="text-slate-400 font-normal ml-1">(96)</span>
+                  </div>
+                </div>
+                <p class="text-xs text-slate-500 mt-0.5">รถตู้ครอบครัว 7 ที่นั่ง ประตูสไลด์ไฟฟ้าคู่ นั่งสบายเดินทางเป็นกลุ่ม</p>
+
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 my-3 text-xs text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                  <div class="flex items-center space-x-1.5">
+                    <span>👥</span>
+                    <span>7-8 ที่นั่ง</span>
+                  </div>
+                  <div class="flex items-center space-x-1.5">
+                    <span>⚙️</span>
+                    <span>ออโต้ e-POWER</span>
+                  </div>
+                  <div class="flex items-center space-x-1.5">
+                    <span>🧳</span>
+                    <span>กระเป๋า 4 ใบใหญ่</span>
+                  </div>
+                  <div class="flex items-center space-x-1.5">
+                    <span>⚡</span>
+                    <span>ขับเคลื่อนมอเตอร์</span>
+                  </div>
+                </div>
+
+                <div class="flex flex-wrap gap-1.5">
+                  <span class="bg-blue-50 text-blue-700 text-[10px] font-medium px-2 py-0.5 rounded border border-blue-100">ProPILOT 2.0</span>
+                  <span class="bg-blue-50 text-blue-700 text-[10px] font-medium px-2 py-0.5 rounded border border-blue-100">ประตูสไลด์ไฟฟ้าอัตโนมัติ</span>
+                  <span class="bg-blue-50 text-blue-700 text-[10px] font-medium px-2 py-0.5 rounded border border-blue-100">เบาะเด็ก Child Seat ฟรี</span>
+                  <span class="bg-emerald-50 text-emerald-700 text-[10px] font-medium px-2 py-0.5 rounded border border-emerald-100">รวมประกันภัย</span>
+                </div>
+              </div>
+
+              <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                <span class="flex items-center text-emerald-600 font-medium">
+                  <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                  รถพร้อมส่งมอบ • อนุมัติผ่านระบบหลังบ้านไวใน 15 นาที
+                </span>
+                <span class="text-[11px] text-blue-600 font-medium cursor-pointer hover:underline">
+                  ดูรายละเอียดรถทั้งหมด →
+                </span>
+              </div>
+            </div>
+
+            <div class="lg:w-64 shrink-0 bg-slate-50 rounded-xl p-4 border border-slate-200/80 flex flex-col justify-between">
+              <div>
+                <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">
+                  อัตราค่าบริการ
+                </div>
+                <div class="flex items-baseline justify-between text-xs border-b border-slate-200 pb-2">
+                  <span class="text-slate-600">รายวัน:</span>
+                  <span class="font-bold text-slate-900 text-sm">฿2,600 <span class="font-normal text-[10px] text-slate-500">/วัน</span></span>
+                </div>
+                <div class="flex items-baseline justify-between text-xs border-b border-slate-200 py-1.5">
+                  <span class="text-slate-600">รายชั่วโมง:</span>
+                  <span class="font-bold text-blue-600 text-xs">฿320 <span class="font-normal text-[10px] text-slate-500">/ชม.</span></span>
+                </div>
+
+                <div class="mt-3 p-2 bg-white rounded-lg border border-blue-200">
+                  <div class="text-[10px] text-slate-500 flex justify-between">
+                    <span>คำนวณตามทริป (3 วัน):</span>
+                    <span class="line-through text-slate-400">฿8,400</span>
+                  </div>
+                  <div class="text-xl font-bold text-blue-600">
+                    ฿7,800
+                  </div>
+                  <div class="text-[9px] text-slate-500 mt-0.5">
+                    *เกิน 14:00 น. ปัดเป็น 3 วันเต็ม
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-3 space-y-2">
+                <button onclick="openBookingModal('Nissan Serena e-POWER', '฿7,800', '3 วัน')" class="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition shadow-sm flex items-center justify-center space-x-1">
+                  <span>จองรถคันนี้ทันที</span>
+                  <span>→</span>
+                </button>
+                <div class="text-[10px] text-center text-slate-500">
+                  เข้าสู่ระบบแล้วจองทันที หรือ สมัครใหม่พร้อมจอง
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CAR ITEM 3: Tesla Model 3 Long Range (EV 100%) -->
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition p-4 sm:p-5 flex flex-col lg:flex-row gap-5">
+            <div class="lg:w-64 shrink-0 flex flex-col justify-between">
+              <div class="relative bg-slate-100 rounded-xl h-44 flex items-center justify-center p-3 overflow-hidden">
+                <span class="absolute top-2 left-2 bg-white/90 text-slate-800 text-[10px] font-bold px-2 py-0.5 rounded shadow-xs">
+                  🇯🇵 ญี่ปุ่น (Tokyo)
+                </span>
+                <span class="absolute top-2 right-2 bg-purple-600 text-white text-[10px] font-semibold px-2 py-0.5 rounded">
+                  EV ไฟฟ้า 100%
+                </span>
+                <div class="text-center">
+                  <svg class="w-36 h-20 text-slate-700 mx-auto" viewBox="0 0 100 60" fill="currentColor">
+                    <path d="M12,35 Q18,20 34,18 L62,18 Q76,18 86,28 L95,33 Q98,35 98,40 L98,44 Q98,46 95,46 L89,46 A8,8 0 0,1 73,46 L35,46 A8,8 0 0,1 19,46 L11,46 Q9,46 9,42 Z M27,48 A5,5 0 1,0 27,38 A5,5 0 0,0 27,48 Z M81,48 A5,5 0 1,0 81,38 A5,5 0 0,0 81,48 Z" opacity="0.85"/>
+                    <rect x="35" y="21" width="18" height="11" rx="2" fill="#fff" opacity="0.6"/>
+                    <rect x="56" y="21" width="16" height="11" rx="2" fill="#fff" opacity="0.6"/>
+                  </svg>
+                  <span class="text-[11px] text-slate-400 font-mono">Tesla Model 3 Highland</span>
+                </div>
+                <span class="absolute bottom-2 left-2 bg-slate-900/80 text-white text-[9px] px-1.5 py-0.5 rounded">
+                  พวงมาลัยขวา (RHD)
+                </span>
+              </div>
+              <div class="text-[11px] text-center text-slate-400 mt-2">
+                ผู้ให้บริการ: EV Car Rental Tokyo
+              </div>
+            </div>
+
+            <div class="flex-1 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between">
+                  <h3 class="text-lg font-bold text-slate-900 hover:text-blue-600 cursor-pointer">
+                    Tesla Model 3 Highland Long Range (2024)
+                  </h3>
+                  <div class="flex items-center text-amber-500 font-bold text-xs">
+                    ★ 4.96 <span class="text-slate-400 font-normal ml-1">(180)</span>
+                  </div>
+                </div>
+                <p class="text-xs text-slate-500 mt-0.5">ชาร์จเต็มวิ่งไกล 629 กม. เทคโนโลยีล้ำสมัย ขับขี่เงียบสบาย ไร้มลพิษ</p>
+
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 my-3 text-xs text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                  <div class="flex items-center space-x-1.5">
+                    <span>👥</span>
+                    <span>5 ที่นั่ง</span>
+                  </div>
+                  <div class="flex items-center space-x-1.5">
+                    <span>⚡</span>
+                    <span>AWD สองมอเตอร์</span>
+                  </div>
+                  <div class="flex items-center space-x-1.5">
+                    <span>🧳</span>
+                    <span>กระเป๋า 3 ใบใหญ่</span>
+                  </div>
+                  <div class="flex items-center space-x-1.5">
+                    <span>🔋</span>
+                    <span>EV 629 km</span>
+                  </div>
+                </div>
+
+                <div class="flex flex-wrap gap-1.5">
+                  <span class="bg-blue-50 text-blue-700 text-[10px] font-medium px-2 py-0.5 rounded border border-blue-100">Autopilot</span>
+                  <span class="bg-blue-50 text-blue-700 text-[10px] font-medium px-2 py-0.5 rounded border border-blue-100">ฟรีชาร์จ Supercharger ญี่ปุ่น</span>
+                  <span class="bg-blue-50 text-blue-700 text-[10px] font-medium px-2 py-0.5 rounded border border-blue-100">จอทัชสกรีน 15.4 นิ้ว</span>
+                  <span class="bg-emerald-50 text-emerald-700 text-[10px] font-medium px-2 py-0.5 rounded border border-emerald-100">รวมประกันภัยพรีเมียม</span>
+                </div>
+              </div>
+
+              <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                <span class="flex items-center text-emerald-600 font-medium">
+                  <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                  รถพร้อมส่งมอบ • อนุมัติผ่านระบบหลังบ้านไวใน 15 นาที
+                </span>
+                <span class="text-[11px] text-blue-600 font-medium cursor-pointer hover:underline">
+                  ดูรายละเอียดรถทั้งหมด →
+                </span>
+              </div>
+            </div>
+
+            <div class="lg:w-64 shrink-0 bg-slate-50 rounded-xl p-4 border border-slate-200/80 flex flex-col justify-between">
+              <div>
+                <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">
+                  อัตราค่าบริการ
+                </div>
+                <div class="flex items-baseline justify-between text-xs border-b border-slate-200 pb-2">
+                  <span class="text-slate-600">รายวัน:</span>
+                  <span class="font-bold text-slate-900 text-sm">฿3,100 <span class="font-normal text-[10px] text-slate-500">/วัน</span></span>
+                </div>
+                <div class="flex items-baseline justify-between text-xs border-b border-slate-200 py-1.5">
+                  <span class="text-slate-600">รายชั่วโมง:</span>
+                  <span class="font-bold text-blue-600 text-xs">฿390 <span class="font-normal text-[10px] text-slate-500">/ชม.</span></span>
+                </div>
+
+                <div class="mt-3 p-2 bg-white rounded-lg border border-blue-200">
+                  <div class="text-[10px] text-slate-500 flex justify-between">
+                    <span>คำนวณตามทริป (3 วัน):</span>
+                    <span class="line-through text-slate-400">฿10,200</span>
+                  </div>
+                  <div class="text-xl font-bold text-blue-600">
+                    ฿9,300
+                  </div>
+                  <div class="text-[9px] text-slate-500 mt-0.5">
+                    *เกิน 14:00 น. ปัดเป็น 3 วันเต็ม
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-3 space-y-2">
+                <button onclick="openBookingModal('Tesla Model 3 Highland', '฿9,300', '3 วัน')" class="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition shadow-sm flex items-center justify-center space-x-1">
+                  <span>จองรถคันนี้ทันที</span>
+                  <span>→</span>
+                </button>
+                <div class="text-[10px] text-center text-slate-500">
+                  เข้าสู่ระบบแล้วจองทันที หรือ สมัครใหม่พร้อมจอง
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CAR ITEM 4: Toyota Corolla Cross Hybrid -->
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition p-4 sm:p-5 flex flex-col lg:flex-row gap-5">
+            <div class="lg:w-64 shrink-0 flex flex-col justify-between">
+              <div class="relative bg-slate-100 rounded-xl h-44 flex items-center justify-center p-3 overflow-hidden">
+                <span class="absolute top-2 left-2 bg-white/90 text-slate-800 text-[10px] font-bold px-2 py-0.5 rounded shadow-xs">
+                  🇯🇵 ญี่ปุ่น (Tokyo)
+                </span>
+                <span class="absolute top-2 right-2 bg-cyan-600 text-white text-[10px] font-semibold px-2 py-0.5 rounded">
+                  Compact Crossover
+                </span>
+                <div class="text-center">
+                  <svg class="w-36 h-20 text-slate-700 mx-auto" viewBox="0 0 100 60" fill="currentColor">
+                    <path d="M12,36 Q17,21 31,19 L63,19 Q75,19 85,28 L94,34 Q97,36 97,40 L97,44 Q97,46 94,46 L88,46 A8,8 0 0,1 72,46 L36,46 A8,8 0 0,1 20,46 L12,46 Q10,46 10,42 Z M28,48 A5,5 0 1,0 28,38 A5,5 0 0,0 28,48 Z M80,48 A5,5 0 1,0 80,38 A5,5 0 0,0 80,48 Z" opacity="0.85"/>
+                    <rect x="34" y="22" width="16" height="11" rx="2" fill="#fff" opacity="0.6"/>
+                    <rect x="54" y="22" width="16" height="11" rx="2" fill="#fff" opacity="0.6"/>
+                  </svg>
+                  <span class="text-[11px] text-slate-400 font-mono">Toyota Corolla Cross HEV</span>
+                </div>
+                <span class="absolute bottom-2 left-2 bg-slate-900/80 text-white text-[9px] px-1.5 py-0.5 rounded">
+                  พวงมาลัยขวา (RHD)
+                </span>
+              </div>
+              <div class="text-[11px] text-center text-slate-400 mt-2">
+                ผู้ให้บริการ: Nippon Rent-A-Car
+              </div>
+            </div>
+
+            <div class="flex-1 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between">
+                  <h3 class="text-lg font-bold text-slate-900 hover:text-blue-600 cursor-pointer">
+                    Toyota Corolla Cross Hybrid (2024)
+                  </h3>
+                  <div class="flex items-center text-amber-500 font-bold text-xs">
+                    ★ 4.85 <span class="text-slate-400 font-normal ml-1">(115)</span>
+                  </div>
+                </div>
+                <p class="text-xs text-slate-500 mt-0.5">คล่องตัวในเมือง ขับขึ้นภูเขาไฟฟูจิได้ยอดเยี่ยม พร้อมระบบความปลอดภัยครบ</p>
+
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 my-3 text-xs text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                  <div class="flex items-center space-x-1.5">
+                    <span>👥</span>
+                    <span>5 ที่นั่ง</span>
+                  </div>
+                  <div class="flex items-center space-x-1.5">
+                    <span>⚙️</span>
+                    <span>E-CVT ไฮบริด</span>
+                  </div>
+                  <div class="flex items-center space-x-1.5">
+                    <span>🧳</span>
+                    <span>กระเป๋า 3 ใบ</span>
+                  </div>
+                  <div class="flex items-center space-x-1.5">
+                    <span>⛽</span>
+                    <span>ประหยัดน้ำมัน 24 กม./ลิตร</span>
+                  </div>
+                </div>
+
+                <div class="flex flex-wrap gap-1.5">
+                  <span class="bg-blue-50 text-blue-700 text-[10px] font-medium px-2 py-0.5 rounded border border-blue-100">Toyota Safety Sense</span>
+                  <span class="bg-blue-50 text-blue-700 text-[10px] font-medium px-2 py-0.5 rounded border border-blue-100">รองรับ CarPlay</span>
+                  <span class="bg-blue-50 text-blue-700 text-[10px] font-medium px-2 py-0.5 rounded border border-blue-100">กล้องมองหลัง</span>
+                  <span class="bg-emerald-50 text-emerald-700 text-[10px] font-medium px-2 py-0.5 rounded border border-emerald-100">รวมประกันภัย</span>
+                </div>
+              </div>
+
+              <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                <span class="flex items-center text-emerald-600 font-medium">
+                  <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                  รถพร้อมส่งมอบ • อนุมัติผ่านระบบหลังบ้านไวใน 15 นาที
+                </span>
+                <span class="text-[11px] text-blue-600 font-medium cursor-pointer hover:underline">
+                  ดูรายละเอียดรถทั้งหมด →
+                </span>
+              </div>
+            </div>
+
+            <div class="lg:w-64 shrink-0 bg-slate-50 rounded-xl p-4 border border-slate-200/80 flex flex-col justify-between">
+              <div>
+                <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">
+                  อัตราค่าบริการ
+                </div>
+                <div class="flex items-baseline justify-between text-xs border-b border-slate-200 pb-2">
+                  <span class="text-slate-600">รายวัน:</span>
+                  <span class="font-bold text-slate-900 text-sm">฿1,800 <span class="font-normal text-[10px] text-slate-500">/วัน</span></span>
+                </div>
+                <div class="flex items-baseline justify-between text-xs border-b border-slate-200 py-1.5">
+                  <span class="text-slate-600">รายชั่วโมง:</span>
+                  <span class="font-bold text-blue-600 text-xs">฿220 <span class="font-normal text-[10px] text-slate-500">/ชม.</span></span>
+                </div>
+
+                <div class="mt-3 p-2 bg-white rounded-lg border border-blue-200">
+                  <div class="text-[10px] text-slate-500 flex justify-between">
+                    <span>คำนวณตามทริป (3 วัน):</span>
+                    <span class="line-through text-slate-400">฿6,000</span>
+                  </div>
+                  <div class="text-xl font-bold text-blue-600">
+                    ฿5,400
+                  </div>
+                  <div class="text-[9px] text-slate-500 mt-0.5">
+                    *เกิน 14:00 น. ปัดเป็น 3 วันเต็ม
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-3 space-y-2">
+                <button onclick="openBookingModal('Toyota Corolla Cross Hybrid', '฿5,400', '3 วัน')" class="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition shadow-sm flex items-center justify-center space-x-1">
+                  <span>จองรถคันนี้ทันที</span>
+                  <span>→</span>
+                </button>
+                <div class="text-[10px] text-center text-slate-500">
+                  เข้าสู่ระบบแล้วจองทันที หรือ สมัครใหม่พร้อมจอง
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ================= PAGINATION ================= -->
+        <div class="bg-white rounded-xl border border-slate-200 p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
+          <div>
+            แสดงผล <span class="font-bold text-slate-900">1 - 4</span> จากทั้งหมด <span class="font-bold text-slate-900">18 คัน</span>
+          </div>
+          <div class="flex items-center space-x-1">
+            <button class="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-400 cursor-not-allowed">
+              ← ก่อนหน้า
+            </button>
+            <button class="px-3 py-1.5 rounded-lg bg-blue-600 text-white font-bold">1</button>
+            <button class="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700">2</button>
+            <button class="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700">3</button>
+            <button class="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700">
+              ถัดไป →
+            </button>
+          </div>
+        </div>
+
+      </main>
+
+    </div>
+  </div>
+
+  <!-- ================= BOOKING FLOW MODAL PREVIEW (สอดคล้องกับ Assignment.md) ================= -->
+  <!-- โฟลว 1: เข้าสู่ระบบอยู่แล้วจองทันที | โฟลว 2: จองพร้อมสมัครสมาชิกทันที -->
+  <div id="booking-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 relative animate-in fade-in zoom-in duration-200">
+      
+      <!-- Close Button -->
+      <button onclick="closeBookingModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-xl font-bold">
+        ✕
+      </button>
+
+      <!-- Modal Header -->
+      <div class="mb-4">
+        <span class="text-[11px] font-bold text-blue-600 uppercase tracking-wider bg-blue-50 px-2 py-0.5 rounded">
+          ระบบจองรถยนต์ FUNCH (Booking Flow Prototype)
+        </span>
+        <h3 id="modal-car-name" class="text-xl font-bold text-slate-900 mt-1">
+          Toyota Harrier Hybrid 2.5
+        </h3>
+        <p class="text-xs text-slate-500">
+          ยอดรวมสุทธิ: <strong id="modal-total-price" class="text-blue-600 text-sm">฿6,600</strong> (<span id="modal-duration">3 วัน</span>) • แอดมินอนุมัติหลังบ้าน
+        </p>
+      </div>
+
+      <!-- Flow Tabs -->
+      <div class="grid grid-cols-2 gap-2 bg-slate-100 p-1 rounded-xl mb-5 text-xs font-semibold">
+        <button id="tab-login" onclick="switchModalTab('login')" class="py-2 rounded-lg bg-white text-blue-600 shadow-xs transition">
+          1. สมาชิกเดิม (จองทันที)
+        </button>
+        <button id="tab-register" onclick="switchModalTab('register')" class="py-2 rounded-lg text-slate-600 hover:text-slate-900 transition">
+          2. สมาชิกใหม่ (จองพร้อมสมัคร)
+        </button>
+      </div>
+
+      <!-- Flow 1 Content: Already logged in -->
+      <div id="flow-login-content" class="space-y-4">
+        <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-xs text-emerald-900 flex items-center space-x-2">
+          <span>✅</span>
+          <span><strong>เข้าสู่ระบบอยู่แล้ว:</strong> คุณสามารถยืนยันข้อมูลผู้ขับขี่และกดส่งคำขอจองได้ทันที</span>
+        </div>
+
+        <div class="space-y-2 text-xs">
+          <label class="block font-medium text-slate-700">ชื่อ-นามสกุล ผู้ขับขี่หลัก</label>
+          <input type="text" value="สมชาย ใจดี (Somchai Jaidee)" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs">
+          
+          <label class="block font-medium text-slate-700 mt-2">หมายเลขใบขับขี่สากล (International Driving Permit)</label>
+          <input type="text" value="IDP-TH-2026-9842" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-xs">
+        </div>
+
+        <button onclick="alert('ส่งคำขอจองเรียบร้อย! ข้อมูลจะถูกส่งเข้าสู่ระบบหลังบ้านเพื่อให้แอดมินอนุมัติต่อไป'); closeBookingModal();" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md transition">
+          ยืนยันการจองทันที (Instant Booking)
+        </button>
+        <p class="text-[10px] text-center text-slate-400">ระบบจะส่งสถานะ "รอแอดมินอนุมัติ (Pending Approval)" ไปยังระบบหลังบ้าน</p>
+      </div>
+
+      <!-- Flow 2 Content: Book + Register -->
+      <div id="flow-register-content" class="space-y-3 hidden">
+        <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 text-xs text-blue-900 flex items-center space-x-2">
+          <span>✨</span>
+          <span><strong>จองพร้อมสมัครสมาชิก:</strong> กรอกข้อมูลครั้งเดียว ระบบจะสร้างบัญชีและจองรถให้พร้อมกัน</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <div>
+            <label class="block font-medium text-slate-700 mb-1">ชื่อจริง (ภาษาอังกฤษ)</label>
+            <input type="text" placeholder="First Name" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-xs">
+          </div>
+          <div>
+            <label class="block font-medium text-slate-700 mb-1">นามสกุล (ภาษาอังกฤษ)</label>
+            <input type="text" placeholder="Last Name" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-xs">
+          </div>
+        </div>
+
+        <div class="text-xs space-y-2">
+          <div>
+            <label class="block font-medium text-slate-700 mb-1">อีเมล (สำหรับเข้าสู่ระบบและรับใบยืนยัน)</label>
+            <input type="email" placeholder="example@email.com" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-xs">
+          </div>
+          <div>
+            <label class="block font-medium text-slate-700 mb-1">เบอร์โทรศัพท์มือถือ</label>
+            <input type="tel" placeholder="+66 8X-XXX-XXXX" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-xs">
+          </div>
+          <div>
+            <label class="block font-medium text-slate-700 mb-1">ตั้งรหัสผ่าน (Password)</label>
+            <input type="password" placeholder="อย่างน้อย 8 ตัวอักษร" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-xs">
+          </div>
+        </div>
+
+        <button onclick="alert('สมัครสมาชิกและสร้างคำขอจองสำเร็จ! รอแอดมินอนุมัติผ่านระบบหลังบ้าน'); closeBookingModal();" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md transition mt-2">
+          สมัครสมาชิกและส่งคำขอจองพร้อมกัน
+        </button>
+        <p class="text-[10px] text-center text-slate-400">เมื่อแอดมินอนุมัติในระบบหลังบ้าน จะมีอีเมลแจ้งเตือนส่งถึงคุณทันที</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="bg-white border-t border-slate-200 py-6 px-4 sm:px-6 lg:px-8 text-xs text-slate-500 mt-10">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center space-x-2">
+        <span class="font-bold text-slate-800">FUNCH Car Rental System</span>
+        <span>•</span>
+        <span>หน้า 2: รายการรถและตัวกรอง (Search & Filter Wireframe)</span>
+      </div>
+      <div class="flex items-center space-x-4">
+        <a href="index.html" class="text-blue-600 hover:underline">← หน้า 1: หน้าแรก</a>
+        <a href="search.html" class="text-blue-600 hover:underline">หน้า 2: ผลการค้นหา</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Simple JS for Interactive Wireframe Demo -->
+  <script>
+    function openBookingModal(carName, price, duration) {
+      if(carName && price) {
+        document.getElementById('modal-car-name').innerText = carName;
+        document.getElementById('modal-total-price').innerText = price;
+        document.getElementById('modal-duration').innerText = duration;
+      }
+      document.getElementById('booking-modal').classList.remove('hidden');
+    }
+
+    function closeBookingModal() {
+      document.getElementById('booking-modal').classList.add('hidden');
+    }
+
+    function switchModalTab(tab) {
+      const tabLogin = document.getElementById('tab-login');
+      const tabRegister = document.getElementById('tab-register');
+      const contentLogin = document.getElementById('flow-login-content');
+      const contentRegister = document.getElementById('flow-register-content');
+
+      if (tab === 'login') {
+        tabLogin.className = "py-2 rounded-lg bg-white text-blue-600 shadow-xs transition";
+        tabRegister.className = "py-2 rounded-lg text-slate-600 hover:text-slate-900 transition";
+        contentLogin.classList.remove('hidden');
+        contentRegister.classList.add('hidden');
+      } else {
+        tabRegister.className = "py-2 rounded-lg bg-white text-blue-600 shadow-xs transition";
+        tabLogin.className = "py-2 rounded-lg text-slate-600 hover:text-slate-900 transition";
+        contentRegister.classList.remove('hidden');
+        contentLogin.classList.add('hidden');
+      }
+    }
+
+    // Toggle mobile filter
+    const toggleBtn = document.getElementById('toggle-mobile-filter');
+    const filterSidebar = document.getElementById('filter-sidebar');
+    if (toggleBtn && filterSidebar) {
+      toggleBtn.addEventListener('click', () => {
+        filterSidebar.classList.toggle('hidden');
+      });
+    }
+  </script>
+
+</body>
+</html>
+

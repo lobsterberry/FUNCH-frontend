@@ -1,0 +1,21 @@
+name: funch-frontend
+
+services:
+  frontend:
+    image: funch-frontend:dev
+    build:
+      context: .
+      target: development
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    environment:
+      NODE_ENV: development
+      NEXT_TELEMETRY_DISABLED: "1"
+      DOCKER_WATCH_POLLING: "true"
+      WATCHPACK_POLLING: "true"
+    volumes:
+      - ./src:/app/src
+      - ./public:/app/public
+      - ./next.config.ts:/app/next.config.ts:ro
+      - ./tsconfig.json:/app/tsconfig.json:ro
+      - ./eslint.config.mjs:/app/eslint.config.mjs:ro

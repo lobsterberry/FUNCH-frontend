@@ -1,0 +1,111 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: Kanit;
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/Kanit-Regular.ttf") format("truetype");
+}
+@font-face {
+  font-family: Kanit;
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/fonts/Kanit-Medium.ttf") format("truetype");
+}
+@font-face {
+  font-family: Kanit;
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/Kanit-SemiBold.ttf") format("truetype");
+}
+@font-face {
+  font-family: Kanit;
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/Kanit-Bold.ttf") format("truetype");
+}
+
+@theme inline {
+  --font-sans: "Kanit", Arial, sans-serif;
+  --font-mono: Consolas, monospace;
+  --color-background: #f8fafc;
+  --color-foreground: #1e293b;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 90px;
+}
+body {
+  background: #f8fafc;
+  color: #1e293b;
+  font-family: var(--font-sans);
+}
+button,
+select,
+input[type="checkbox"],
+input[type="radio"] {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: #2563eb;
+}
+input,
+select {
+  min-width: 0;
+}
+:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 3px;
+}
+.rental-dialog::backdrop {
+  background: rgb(15 23 42 / 0.6);
+  backdrop-filter: blur(3px);
+}
+.custom-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+.hero-pattern {
+  background-image: radial-gradient(#3b82f6 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+@layer components {
+  .btn-primary {
+    @apply rounded-xl bg-blue-600 font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50;
+  }
+  .form-input {
+    @apply w-full rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-xs font-medium text-slate-700 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm;
+  }
+  .search-field {
+    @apply rounded-xl border border-slate-200 bg-slate-50 p-3 transition hover:bg-slate-100/80;
+  }
+  .field-label {
+    @apply mb-1 block text-xs font-semibold tracking-wider text-slate-500;
+  }
+  .filter-group {
+    @apply space-y-2.5 border-t border-slate-100 pt-4;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
