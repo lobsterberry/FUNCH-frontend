@@ -4,17 +4,19 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { LocationAutocomplete } from "./location-autocomplete";
 import {
-  countries,
   defaultCriteria,
   getCountry,
   rentalDuration,
+  type Country,
   type SearchCriteria,
 } from "@/lib/rental";
 
 export function SearchForm({
+  countries = [],
   initial = defaultCriteria,
   onComplete,
 }: {
+  countries?: Country[];
   initial?: SearchCriteria;
   onComplete?: () => void;
 }) {
@@ -24,8 +26,14 @@ export function SearchForm({
     Boolean(initial.return_location),
   );
   const [error, setError] = useState("");
-  const country = getCountry(criteria.country);
-  const locationOptions = [...country.cities, country.location];
+  const country = getCountry(criteria.country, countries);
+  const dbLocations = country.locations?.map(
+    (location) =>
+      `${location.cityTh || location.city} - ${location.nameTh || location.name}${location.airportCode ? ` (${location.airportCode} Airport)` : ""}`,
+  ) || [];
+  const locationOptions = Array.from(
+    new Set([...country.cities, ...dbLocations, country.location]),
+  );
   const update = (key: keyof SearchCriteria, value: string) =>
     setCriteria((current) => ({ ...current, [key]: value }));
   const submit = (event: FormEvent<HTMLFormElement>) => {
@@ -88,11 +96,11 @@ export function SearchForm({
               name="country"
               value={criteria.country}
               onChange={(event) => {
-                const country = getCountry(event.target.value);
+                const selected = getCountry(event.target.value, countries);
                 setCriteria((current) => ({
                   ...current,
-                  country: country.code,
-                  location: country.location,
+                  country: selected?.code ?? event.target.value,
+                  location: selected?.location ?? current.location,
                   return_location: "",
                 }));
               }}
@@ -101,10 +109,10 @@ export function SearchForm({
               <option value="" disabled>
                 เลือกประเทศ
               </option>
-              {countries.map((country) => (
-                <option key={country.code} value={country.code}>
-                  {country.flag} {country.name} ({country.english}) - พวงมาลัย
-                  {country.steering === "right" ? "ขวา" : "ซ้าย"}
+              {countries.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.flag} {c.name} ({c.english}) - พวงมาลัย
+                  {c.steering === "right" ? "ขวา" : "ซ้าย"}
                 </option>
               ))}
             </select>
@@ -128,7 +136,7 @@ export function SearchForm({
             />
             <div className="mt-1 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500">
               <span>
-                ยอดนิยม: {getCountry(criteria.country).cities.join(", ")}
+                ยอดนิยม: {country?.cities.join(", ") ?? ""}
               </span>
               <label className="flex cursor-pointer items-center gap-1">
                 <input

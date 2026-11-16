@@ -1,0 +1,28 @@
+import { NextResponse } from "next/server";
+
+const BACKEND_URL =
+  process.env.BACKEND_URL ||
+  (process.env.NODE_ENV === "development"
+    ? "http://host.docker.internal:5000"
+    : "http://localhost:5000");
+
+export async function GET() {
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/countries`, {
+      cache: "no-store",
+    });
+    if (!res.ok) {
+      return NextResponse.json(
+        { success: false, message: `Backend returned ${res.status}` },
+        { status: res.status },
+      );
+    }
+    const data = await res.json();
+    return NextResponse.json(data);
+  } catch (error: any) {
+    return NextResponse.json(
+      { success: false, message: error.message || "Failed to connect to backend" },
+      { status: 502 },
+    );
+  }
+}

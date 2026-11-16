@@ -2,14 +2,18 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { cars, countries, defaultCriteria, type Car } from "@/lib/rental";
+import { defaultCriteria, type Car, type Country } from "@/lib/rental";
 import { CarCard } from "./car-card";
 import { SearchForm } from "./search-form";
 
 export function HomeContent({
+  countries = [],
+  cars = [],
   onDetails,
   onBook,
 }: {
+  countries?: Country[];
+  cars?: Car[];
   onDetails: (car: Car) => void;
   onBook: (car: Car) => void;
 }) {
@@ -25,8 +29,8 @@ export function HomeContent({
     (car) =>
       car.featured &&
       (category === "all" ||
-        car.category === category ||
-        car.fuel === category),
+        car.category.toUpperCase().includes(category.toUpperCase()) ||
+        car.fuel.toUpperCase() === category.toUpperCase()),
   );
   return (
     <main id="main-content">
@@ -53,7 +57,7 @@ export function HomeContent({
           </p>
         </div>
         <div className="relative z-20 mx-auto mt-10 max-w-5xl">
-          <SearchForm />
+          <SearchForm countries={countries} />
         </div>
       </section>
       <section

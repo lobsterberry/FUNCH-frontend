@@ -2,12 +2,12 @@
 
 import { useState, type ReactNode } from "react";
 import {
-  cars,
-  countries,
   getCountry,
+  getSearchCities,
   money,
   rentalDuration,
   type Car,
+  type Country,
   type SearchCriteria,
 } from "@/lib/rental";
 import { CarCard } from "./car-card";
@@ -24,9 +24,12 @@ type Filters = {
   priceMode: "day" | "hour";
   maxPrice: number;
 };
-const freshFilters = (country: string): Filters => ({
-  country,
-  cities: [],
+const freshFilters = (
+  criteria: SearchCriteria,
+  countries: Country[] = [],
+): Filters => ({
+  country: criteria.country,
+  cities: getSearchCities(criteria, countries),
   categories: [],
   steering: "all",
   transmission: [],
@@ -71,34 +74,43 @@ function FilterGroup({
 }
 
 export function SearchResults({
+  countries = [],
+  cars = [],
   criteria,
   onDetails,
   onBook,
   onEdit,
 }: {
+  countries?: Country[];
+  cars?: Car[];
   criteria: SearchCriteria;
   onDetails: (car: Car) => void;
   onBook: (car: Car) => void;
   onEdit: (criteria: SearchCriteria) => void;
 }) {
   const [filters, setFilters] = useState<Filters>(() =>
-    freshFilters(criteria.country),
+    freshFilters(criteria, countries),
   );
   const [mobileFilters, setMobileFilters] = useState(false);
   const [sort, setSort] = useState("recommended");
   const [view, setView] = useState<"list" | "grid">("list");
   const [page, setPage] = useState(1);
   const duration = rentalDuration(criteria);
-  const country = getCountry(filters.country);
+  const country = getCountry(filters.country, countries);
   const location =
     filters.country === "all"
       ? "ทุกประเทศ"
       : filters.country === criteria.country
         ? criteria.location
-        : country.location;
+        : country?.location ?? criteria.location;
   const baseCars = cars.filter(
     (car) => filters.country === "all" || car.country === filters.country,
   );
+  const availableFeatures = Array.from(
+    new Set(baseCars.flatMap((car) => car.features).filter(Boolean)),
+  );
+  const activeFeatureOptions =
+    availableFeatures.length > 0 ? availableFeatures.slice(0, 8) : featureOptions;
   const update = <K extends keyof Filters>(key: K, value: Filters[K]) => {
     setFilters((current) => ({ ...current, [key]: value }));
     setPage(1);
@@ -180,11 +192,11 @@ export function SearchResults({
       : "วันที่ไม่ถูกต้อง";
   };
   const reset = () => {
-    setFilters(freshFilters(criteria.country));
+    setFilters(freshFilters(criteria, countries));
     setPage(1);
   };
   const tags = [
-    ...(filters.country !== "all"
+    ...(filters.country !== "all" && country
       ? [
           {
             label: `${country.flag} ${country.name}`,
@@ -199,6 +211,10 @@ export function SearchResults({
           },
         ]
       : []),
+    ...filters.cities.map((value) => ({
+      label: value,
+      clear: () => toggle("cities", value),
+    })),
     ...filters.categories.map((value) => ({
       label:
         categoryOptions.find((option) => option.id === value)?.label ?? value,
@@ -219,8 +235,11 @@ export function SearchResults({
   ];
   const editCriteria = {
     ...criteria,
-    country: filters.country === "all" ? "JP" : filters.country,
-    location: filters.country === "all" ? getCountry("JP").location : location,
+    country: filters.country === "all" ? (countries[0]?.code ?? "JP") : filters.country,
+    location:
+      filters.country === "all"
+        ? (getCountry(countries[0]?.code ?? "JP", countries)?.location ?? location)
+        : location,
   };
   return (
     <main id="main-content" className="flex-1">
@@ -229,10 +248,10 @@ export function SearchResults({
           <div className="flex flex-wrap items-center gap-2 text-slate-700">
             <div className="flex items-center gap-1.5 rounded-lg border border-blue-200/80 bg-blue-50 px-3 py-1.5 font-medium text-blue-800">
               <span className="text-base">
-                {filters.country === "all" ? "🌍" : country.flag}
+                {filters.country === "all" ? "🌍" : (country?.flag ?? "🌍")}
               </span>
               <strong>
-                {filters.country === "all" ? "ทุกประเทศ" : `${country.name}:`}
+                {filters.country === "all" ? "ทุกประเทศ" : `${country?.name ?? filters.country}:`}
               </strong>
               <span>{filters.country !== "all" && location}</span>
             </div>
@@ -322,7 +341,7 @@ export function SearchResults({
                   </option>
                 ))}
               </select>
-              {filters.country !== "all" && (
+              {filters.country !== "all" && country && (
                 <div className="space-y-2 text-xs text-slate-600">
                   {country.cities.map((city) =>
                     checkbox(
@@ -436,15 +455,31 @@ export function SearchResults({
             </FilterGroup>
             <FilterGroup title="⛽ ประเภทเชื้อเพลิง">
               {[
-                { id: "Petrol", label: "เบนซิน (Petrol)" },
+                { id: "Petrol", label: "เบนซิน (Gasoline / Petrol)" },
                 { id: "Diesel", label: "ดีเซล (Diesel)" },
                 { id: "Hybrid", label: "ไฮบริด (Hybrid)" },
                 { id: "EV", label: "ไฟฟ้า 100% (EV)" },
-              ].map((item) => checkbox("fuels", item.id, item.label))}
+              ].map((item) =>
+                checkbox(
+                  "fuels",
+                  item.id,
+                  item.label,
+                  baseCars.filter((car) =>
+                    item.id === "Petrol"
+                      ? car.fuel === "Petrol" || car.fuel === "Gasoline"
+                      : car.fuel === item.id,
+                  ).length,
+                ),
+              )}
             </FilterGroup>
             <FilterGroup title="✨ ออปชั่นและคุณสมบัติเด่น">
-              {featureOptions.map((feature) =>
-                checkbox("features", feature, feature),
+              {activeFeatureOptions.map((feature) =>
+                checkbox(
+                  "features",
+                  feature,
+                  feature,
+                  baseCars.filter((car) => car.features.includes(feature)).length,
+                ),
               )}
             </FilterGroup>
             <div className="border-t border-slate-100 pt-4">
