@@ -36,6 +36,7 @@ export async function api<T>(path: string, body?: unknown): Promise<T> {
       "A record with these details already exists": "อีเมลนี้มีบัญชีแล้ว กรุณาเข้าสู่ระบบ",
       "Car is already booked for these dates": "รถคันนี้ถูกจองในช่วงเวลาที่เลือกแล้ว กรุณาเปลี่ยนวันเวลาหรือเลือกรถคันอื่น",
       "Car is unavailable": "รถคันนี้ไม่เปิดให้จองแล้ว กรุณาเลือกรถคันอื่น",
+      "Car details changed; please refresh and try again": "ข้อมูลหรือสถานะรถมีการเปลี่ยนแปลง กรุณาโหลดข้อมูลใหม่แล้วลองอีกครั้ง",
       "Pickup must be in the future": "กรุณาเลือกวันและเวลารับรถในอนาคต",
     };
     const message = specificMessages[data?.message]
@@ -59,8 +60,8 @@ async function authAction(action: "login" | "logout", credentials = {}) {
     : "ยืนยันการเข้าสู่ระบบไม่สำเร็จ กรุณาลองอีกครั้ง", 401);
 }
 
-export async function signIn(email: string, password: string) {
-  await authAction("login", { email, password });
+export async function signIn(email: string, password: string, scope?: "admin") {
+  await authAction("login", { email, password, ...(scope ? { scope } : {}) });
   const member = await currentMember();
   if (!member) throw new ApiError("เข้าสู่ระบบไม่สำเร็จ กรุณาลองอีกครั้ง", 401);
   return member;

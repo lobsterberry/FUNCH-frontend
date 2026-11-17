@@ -1,4 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { proxyBackend } from "@/lib/backend-proxy";
+
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  return proxyBackend(request, `/api/cars/${encodeURIComponent(id)}`);
+}
 
 const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:5000";
 
@@ -21,9 +27,9 @@ export async function GET(
 
     const data = await res.json();
     return NextResponse.json(data);
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json(
-      { success: false, message: error.message || "Failed to fetch car" },
+      { success: false, message: error instanceof Error ? error.message : "Failed to fetch car" },
       { status: 502 },
     );
   }
