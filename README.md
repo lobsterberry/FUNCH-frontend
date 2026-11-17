@@ -102,3 +102,8 @@ Backend อยู่ใน repository `FUNCH-backend` ใช้การตั�
 ตรวจหลังติดตั้ง: `npm audit --omit=dev` ไม่พบช่องโหว่ใน production dependencies
 ส่วน `npm audit` รายงานระดับ moderate 8 รายการในสาย dependencies ของ ESLint / typescript-eslint / minimatch
 ยังไม่ได้ใช้ `npm audit fix --force` เพราะคำสั่งเสนอให้เปลี่ยน major version ของ eslint-config-next
+# Fleet: รุ่นรถและหลายสาขา
+
+หน้า `/admin/fleet` จัดการรุ่นและราคาแต่ละสาขา หน้า `/admin/cars` เพิ่มทะเบียนและดูตารางรถ หน้าค้นหาเลือกสาขาด้วย ID และเรียก `/api/fleet/search` เพื่อนับรถที่ว่างตลอดช่วงเช่า การจองส่ง `carModelLocationId` ให้ backend จัดสรรรถจริง และตรวจยอดราคาที่ลูกค้าเห็นก่อนยืนยัน
+
+ก่อนใช้งานให้อัปเกรด backend ตาม `backend/docs/fleet.md` แล้วตรวจด้วย `npm run lint`, `npm run build`, `npm test`

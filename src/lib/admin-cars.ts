@@ -55,7 +55,7 @@ export function carsCsv(cars: AdminCar[]) {
   ].map((row) => row.map(cell).join(",")).join("\r\n");
 }
 
-export async function adminRequest<T>(path: string, method = "GET", body?: CarInput): Promise<T> {
+export async function adminRequest<T>(path: string, method = "GET", body?: unknown): Promise<T> {
   let response: Response;
   try {
     response = await fetch(path, { method, cache: "no-store", credentials: "same-origin",
@@ -65,6 +65,11 @@ export async function adminRequest<T>(path: string, method = "GET", body?: CarIn
   const data = await response.json().catch(() => null);
   if (!response.ok || !data?.success) {
     const specific: Record<string, string> = {
+      "FLEET_BOOKED": "รถมีรายการจองค้าง กรุณาจัดการตารางรถก่อนเปลี่ยนรุ่น ย้ายสาขา ปิดบริการ หรือส่งซ่อม",
+      "INVALID_TRANSFER": "ปลายทางต้องเปิดบริการสำหรับรุ่นและผู้ให้บริการเดียวกัน ภายในประเทศเดียวกัน",
+      "OFFER_IDENTITY": "กรุณาสร้างข้อเสนอใหม่เมื่อต้องการเปลี่ยนรุ่น สาขา หรือผู้ให้บริการ",
+      "SCHEDULE_CONFLICT": "การเปลี่ยนแปลงกระทบตารางรถหรือสถานที่รับรถของรายการจองอื่น",
+      "INVALID_TRANSITION": "ไม่สามารถเปลี่ยนสถานะการจองตามที่เลือกได้",
       "A record with these details already exists": "ทะเบียนรถนี้มีอยู่ในประเทศที่เลือกแล้ว",
       "Country and pickup location must match": "กรุณาเลือกจุดรับรถให้ตรงกับประเทศ",
       "Car has upcoming bookings; location cannot change": "รถมีรายการจองอยู่ จึงยังเปลี่ยนประเทศหรือจุดรับรถไม่ได้",

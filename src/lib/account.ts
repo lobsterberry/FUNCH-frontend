@@ -33,6 +33,10 @@ export async function api<T>(path: string, body?: unknown): Promise<T> {
       502: "ไม่สามารถเชื่อมต่อระบบได้ กรุณาลองอีกครั้ง",
     };
     const specificMessages: Record<string, string> = {
+      "No car is available for these dates and locations": "รถรุ่นนี้เต็มในช่วงเวลาและสาขาที่เลือก กรุณาเปลี่ยนวันเวลาหรือค้นหาใหม่",
+      "This model cannot be returned at the selected location": "รถรุ่นนี้ยังไม่รองรับการคืนที่สาขาที่เลือก กรุณาเปลี่ยนสาขาคืนรถ",
+      "CAR_CHANGED": "ข้อมูลรถมีการเปลี่ยนแปลง กรุณาค้นหาใหม่",
+      "PRICE_CHANGED": "ราคาเปลี่ยนแปลงแล้ว กรุณาตรวจสอบราคาใหม่ก่อนยืนยันอีกครั้ง",
       "A record with these details already exists": "อีเมลนี้มีบัญชีแล้ว กรุณาเข้าสู่ระบบ",
       "Car is already booked for these dates": "รถคันนี้ถูกจองในช่วงเวลาที่เลือกแล้ว กรุณาเปลี่ยนวันเวลาหรือเลือกรถคันอื่น",
       "Car is unavailable": "รถคันนี้ไม่เปิดให้จองแล้ว กรุณาเลือกรถคันอื่น",
