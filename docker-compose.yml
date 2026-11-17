@@ -10,6 +10,7 @@ services:
       - "${FRONTEND_PORT:-3000}:3000"
     environment:
       NODE_ENV: development
+      BACKEND_URL: ${BACKEND_URL:-http://host.docker.internal:5000}
       NEXT_TELEMETRY_DISABLED: "1"
       DOCKER_WATCH_POLLING: "true"
       WATCHPACK_POLLING: "true"

@@ -12,18 +12,42 @@ import {
 import { HomeContent } from "./home-content";
 import { Header, Footer } from "./site-chrome";
 import { SearchResults } from "./search-results";
-import { BookingDialog, CarDetails, Dialog } from "./rental-dialog";
+import { CarDetails, Dialog } from "./rental-dialog";
+import { BookingDialog } from "./booking-dialog";
+import { currentMember, signOut, type Member } from "@/lib/account";
 import { SearchForm } from "./search-form";
 
 export default function RentalApp({ mode }: { mode: "home" | "search" }) {
   const params = useSearchParams();
   const [countries, setCountries] = useState<Country[]>([]);
   const [cars, setCars] = useState<Car[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [member, setMember] = useState<Member | null>(null);
+  const [sessionLoading, setSessionLoading] = useState(true);
+  const [accountError, setAccountError] = useState("");
+  const [loggingOut, setLoggingOut] = useState(false);
   const [details, setDetails] = useState<Car | null>(null);
   const [booking, setBooking] = useState<Car | null>(null);
   const [auth, setAuth] = useState<"login" | "register" | null>(null);
   const [editing, setEditing] = useState<SearchCriteria | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    const refresh = () => currentMember().then((value) => {
+      if (active) { setMember(value); setAccountError(""); }
+    }).catch(() => { if (active) setAccountError("ตรวจสอบบัญชีไม่สำเร็จ กรุณารีเฟรชหน้าเว็บ"); })
+      .finally(() => { if (active) setSessionLoading(false); });
+    void refresh();
+    window.addEventListener("focus", refresh);
+    return () => { active = false; window.removeEventListener("focus", refresh); };
+  }, []);
+
+  const logout = async () => {
+    setLoggingOut(true);
+    setAccountError("");
+    try { await signOut(); setMember(null); }
+    catch (cause) { setAccountError((cause as Error).message); }
+    finally { setLoggingOut(false); }
+  };
 
   useEffect(() => {
     let active = true;
@@ -39,11 +63,9 @@ export default function RentalApp({ mode }: { mode: "home" | "search" }) {
         if (carRes?.success && Array.isArray(carRes.data)) {
           setCars(carRes.data);
         }
-        setLoading(false);
       })
       .catch((err) => {
         console.error("Error fetching master data:", err);
-        setLoading(false);
       });
     return () => {
       active = false;
@@ -72,7 +94,9 @@ export default function RentalApp({ mode }: { mode: "home" | "search" }) {
         };
   return (
     <>
-      <Header search={mode === "search"} onAuth={setAuth} />
+      <Header search={mode === "search"} onAuth={setAuth} member={member}
+        sessionLoading={sessionLoading} loggingOut={loggingOut} onLogout={logout} />
+      {accountError && <p role="alert" className="bg-rose-50 px-4 py-2 text-center text-sm text-rose-700">{accountError}</p>}
       {mode === "home" ? (
         <HomeContent
           countries={countries}
@@ -106,6 +130,10 @@ export default function RentalApp({ mode }: { mode: "home" | "search" }) {
         <BookingDialog
           car={booking}
           criteria={criteria}
+          countries={countries}
+          member={member}
+          sessionLoading={sessionLoading}
+          onMemberChange={setMember}
           onClose={() => setBooking(null)}
         />
       )}{" "}
@@ -114,6 +142,10 @@ export default function RentalApp({ mode }: { mode: "home" | "search" }) {
           authOnly
           initialTab={auth}
           criteria={criteria}
+          countries={countries}
+          member={member}
+          sessionLoading={sessionLoading}
+          onMemberChange={setMember}
           onClose={() => setAuth(null)}
         />
       )}{" "}

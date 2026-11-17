@@ -97,7 +97,8 @@ export function getSearchCities(
   criteria: Pick<SearchCriteria, "country" | "location">,
   countryList: Country[] = [],
 ): string[] {
-  const country = getCountry(criteria.country, countryList);
+  const country = countryList.find((item) => item.code === criteria.country);
+  if (!country) return [];
   const location = criteria.location.trim().normalize("NFC");
   return country.cities.filter((city) => location.includes(city));
 }

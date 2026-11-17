@@ -2,13 +2,22 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import type { Member } from "@/lib/account";
 
 export function Header({
   search,
   onAuth,
+  member,
+  sessionLoading,
+  loggingOut,
+  onLogout,
 }: {
   search: boolean;
   onAuth: (tab: "login" | "register") => void;
+  member: Member | null;
+  sessionLoading: boolean;
+  loggingOut: boolean;
+  onLogout: () => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const links = [
@@ -81,7 +90,12 @@ export function Header({
           <span className="hidden items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs text-slate-700 sm:flex">
             🇹🇭 <span className="font-medium">TH</span>
           </span>
-          <button
+          {sessionLoading ? <span className="text-xs text-slate-500">กำลังตรวจสอบบัญชี…</span> : member ? <>
+            <span className="hidden max-w-40 truncate text-xs font-semibold text-blue-700 sm:block" title={member.email}>{member.name}</span>
+            <button onClick={onLogout} disabled={loggingOut} className="rounded-lg border border-slate-200 px-3 py-2 text-xs text-slate-700 disabled:opacity-50">
+              {loggingOut ? "กำลังออก…" : "ออกจากระบบ"}
+            </button>
+          </> : <><button
             onClick={() => onAuth("login")}
             className="hidden px-2 py-1.5 text-sm font-medium text-slate-700 hover:text-blue-600 sm:block"
           >
@@ -93,6 +107,7 @@ export function Header({
           >
             สมัครสมาชิก
           </button>
+          </>}
           <button
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label="เปิดเมนู"
@@ -110,6 +125,7 @@ export function Header({
           aria-label="เมนูมือถือ"
           className="space-y-1 border-t border-slate-100 bg-white p-4 xl:hidden"
         >
+          {member && <p className="px-3 py-2 text-sm font-semibold text-blue-700">{member.name}</p>}
           {links.map((link) => (
             <Link
               onClick={() => setMenuOpen(false)}
@@ -120,7 +136,7 @@ export function Header({
               {link.label}
             </Link>
           ))}
-          <button
+          {!member && !sessionLoading && <button
             className="px-3 py-2 text-sm text-blue-600"
             onClick={() => {
               setMenuOpen(false);
@@ -128,7 +144,7 @@ export function Header({
             }}
           >
             เข้าสู่ระบบ
-          </button>
+          </button>}
         </nav>
       )}
     </header>
