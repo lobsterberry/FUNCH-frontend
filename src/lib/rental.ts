@@ -24,6 +24,15 @@ export type Country = {
 
 export type Car = {
   id: string;
+  carModelId?: string;
+  carModelLocationId?: string | null;
+  availableCount?: number;
+  availabilityChecked?: boolean;
+  quotedTotal?: number;
+  quotedDays?: number;
+  quotedHours?: number;
+  transmissionType?: "AUTOMATIC" | "MANUAL";
+  categories?: string[];
   name: string;
   model: string;
   brand?: string;
@@ -56,6 +65,8 @@ export type Car = {
 
 export type SearchCriteria = {
   country: string;
+  locationId?: string;
+  dropoffLocationId?: string;
   location: string;
   pickup_date: string;
   pickup_time: string;
@@ -64,6 +75,17 @@ export type SearchCriteria = {
   return_location?: string;
   service?: string;
 };
+
+export function locationLabel(location: LocationItem): string {
+  return `${location.cityTh || location.city} - ${location.nameTh || location.name}${location.airportCode ? ` (${location.airportCode} Airport)` : ''}`;
+}
+
+// Resolve old bookmarked URLs once; new searches always send a branch ID.
+export function resolveLocation(locations: LocationItem[], id?: string, label?: string) {
+  if (id) return locations.find((location) => location.id === id);
+  return locations.find((location) => locationLabel(location) === label || location.name === label || location.nameTh === label)
+    ?? locations.find((location) => label?.includes(location.nameTh) || label?.includes(location.name));
+}
 const fallbackCountry: Country = {
   code: "JP",
   name: "ญี่ปุ่น",

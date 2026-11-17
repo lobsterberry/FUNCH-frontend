@@ -18,9 +18,9 @@ export async function GET(request: NextRequest) {
 
     const data = await res.json();
     return NextResponse.json(data);
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json(
-      { success: false, message: error.message || "Failed to fetch locations" },
+      { success: false, message: error instanceof Error ? error.message : "Failed to fetch locations" },
       { status: 502 },
     );
   }

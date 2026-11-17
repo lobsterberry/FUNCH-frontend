@@ -1,89 +1,141 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { Country } from "@/lib/rental";
-import { money } from "@/lib/rental";
 import { ApiError } from "@/lib/account";
-import { adminRequest, carCategories, carsCsv, defaultCarFilters, filterAdminCars, type AdminCar, type CarFilters, type CarInput } from "@/lib/admin-cars";
+import { adminRequest } from "@/lib/admin-cars";
+import type { FleetCatalogData, FleetModel, FleetOffer, FleetUnit, InventoryInput, InventoryMutation, VehicleStatus } from "@/lib/fleet";
+import { emptyFleetFilters, fleetCsv, fleetResults, fleetStatusLabels, type FleetFilters as Filters } from "@/lib/fleet-view";
 import { CarForm } from "./car-form";
+import { CarSchedule } from "./car-schedule";
+import { ModelForm } from "./model-form";
+import { OfferForm } from "./offer-form";
+import { TransferVehicleForm } from "./transfer-vehicle-form";
+import { FleetOverview } from "./fleet-overview";
+import { FleetFilters, type FleetView } from "./fleet-filters";
+import { FleetModelView } from "./fleet-model-view";
+import { FleetLocationView } from "./fleet-location-view";
+import { FleetUnitTable } from "./fleet-unit-table";
 import { AdminIcon } from "../layout/admin-icon";
+import { Dialog } from "../rental-dialog";
+import { useAdminFleet } from "../layout/admin-fleet-context";
 
-const pageSize = 10;
+type Modal = { kind: "model"; item: FleetModel | null } | { kind: "offer"; item: FleetOffer | null; modelId?: string; locationId?: string }
+  | { kind: "car"; item: FleetUnit | null; modelId?: string; locationId?: string; offerId?: string }
+  | { kind: "transfer"; unitId?: string } | { kind: "history" | "status"; unit: FleetUnit };
+const emptyCatalog: FleetCatalogData = { models: [], offers: [], units: [], locationInventory: [], generatedAt: "",
+  summary: { models: 0, locations: 0, countries: 0, total: 0, available: 0, inUse: 0, maintenance: 0 } };
+
+function StatusForm({ unit, onClose, onSave }: { unit: FleetUnit; onClose: () => void; onSave: (input: InventoryInput) => Promise<void> }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const status = String(new FormData(event.currentTarget).get("status")) as VehicleStatus;
+    setBusy(true); setError("");
+    try { await onSave({ carModelLocationId: unit.carModelLocationId!, year: unit.year, licensePlate: unit.licensePlate!,
+      isAvailable: status === "AVAILABLE", operationalStatus: status }); }
+    catch (cause) { setError((cause as Error).message); setBusy(false); }
+  }
+  return <Dialog title={`จัดการสถานะ · ${unit.licensePlate}`} onClose={() => { if (!busy) onClose(); }}><form onSubmit={submit} className="space-y-5"><p className="text-sm text-slate-500">{unit.name} · {unit.location?.nameTh || "ยังไม่จัดสาขา"}</p><label className="block text-xs font-medium">สถานะการปฏิบัติงาน<select disabled={busy} name="status" defaultValue={unit.operationalStatus} className="form-input mt-2">{(["AVAILABLE", "CLEANING", "MAINTENANCE", "INACTIVE"] as const).map((status) => <option key={status} value={status}>{fleetStatusLabels[status]}</option>)}</select></label><p className="rounded-xl bg-amber-50 p-3 text-xs leading-6 text-amber-800">รถที่เตรียมรถ ซ่อมบำรุง หรือปิดบริการ จะไม่ถูกจัดสรรให้รายการจองใหม่ หากมีรายการจองค้างต้องจัดการตารางก่อน การเปิดบริการยังต้องรอให้พ้นเวลาเตรียมรถหลังคืน</p>{error && <p role="alert" className="text-sm text-red-700">{error}</p>}<div className="flex justify-end gap-3"><button type="button" disabled={busy} onClick={onClose} className="rounded-xl border px-4 py-2 text-xs">ยกเลิก</button><button disabled={busy} className="btn-primary px-4 py-2 text-xs">{busy ? "กำลังบันทึก…" : "ยืนยันสถานะ"}</button></div></form></Dialog>;
+}
 
 export function AdminCars() {
   const router = useRouter();
-  const [cars, setCars] = useState<AdminCar[]>([]);
+  const { setNetwork } = useAdminFleet();
+  const params = useSearchParams();
+  const [data, setData] = useState<FleetCatalogData>(emptyCatalog);
   const [countries, setCountries] = useState<Country[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const [filters, setFilters] = useState<CarFilters>(defaultCarFilters);
-  const [page, setPage] = useState(1);
-  const [editing, setEditing] = useState<AdminCar | "new" | null>(null);
+  const [modal, setModal] = useState<Modal | null>(null);
+  const requestId = useRef(0);
+  const filters = Object.fromEntries(Object.entries(emptyFleetFilters).map(([key, value]) => [key, params.get(key) || value])) as Filters;
+  const view: FleetView = params.get("view") === "location" ? "location" : params.get("view") === "fleet" ? "fleet" : "model";
+  const pageSize = view === "model" ? 5 : view === "location" ? 6 : 10;
+  const results = fleetResults(data, filters);
+  const noLocationFilter = !filters.search && filters.category === "all" && filters.status === "all" && filters.model === "all";
+  const locationIds = new Set<string>([...results.offers.map((offer) => offer.locationId), ...results.units.flatMap((unit) => unit.locationId ? [unit.locationId] : [])]);
+  if (noLocationFilter) for (const country of countries) for (const location of country.locations || []) {
+    if ((filters.country === "all" || country.code === filters.country) && (filters.location === "all" || location.id === filters.location)) locationIds.add(location.id);
+  }
+  const allLocations = countries.flatMap((country) => country.locations || []).filter((location) => locationIds.has(location.id));
+  const counts = { model: results.models.length, location: allLocations.length, fleet: results.units.length };
+  const count = counts[view];
+  const totalPages = Math.max(1, Math.ceil(count / pageSize));
+  const rawPage = Number(params.get("page")) || 1;
+  const page = Math.max(1, Math.min(Number.isFinite(rawPage) ? Math.floor(rawPage) : 1, totalPages));
+  const start = (page - 1) * pageSize;
+  const pagedLocations = new Set(allLocations.slice(start, start + pageSize).map((location) => location.id));
+  const ungrouped = results.units.filter((unit) => !unit.carModelId);
 
-  const load = useCallback(() => {
-    return Promise.all([
-        adminRequest<{ data: AdminCar[] }>("/api/admin/cars"),
-        adminRequest<{ data: Country[] }>("/api/countries"),
-      ]).then(([fleet, countryList]) => {
-      setCars(fleet.data); setCountries(countryList.data); setError("");
-    }).catch((error: unknown) => {
-      if (error instanceof ApiError && [401, 403].includes(error.status)) { router.replace("/admin/login"); router.refresh(); }
-      setError(error instanceof Error ? error.message : "โหลดข้อมูลไม่สำเร็จ");
-    }).finally(() => setLoading(false));
+  const authorize = useCallback((cause: unknown) => {
+    if (cause instanceof ApiError && [401, 403].includes(cause.status)) { router.replace("/admin/login"); router.refresh(); }
   }, [router]);
-  useEffect(() => { void load(); }, [load]);
-
-  function refresh() { setLoading(true); setError(""); void load(); }
-
-  function changeFilter<K extends keyof CarFilters>(key: K, value: CarFilters[K]) {
-    setFilters((current) => ({ ...current, [key]: value })); setPage(1);
-  }
-  async function save(data: CarInput) {
+  const load = useCallback(async () => {
+    const id = ++requestId.current;
+    setLoading(true);
     try {
-      await adminRequest(editing === "new" ? "/api/cars" : `/api/cars/${encodeURIComponent((editing as AdminCar).id)}`, editing === "new" ? "POST" : "PATCH", data);
-      setEditing(null); setNotice("บันทึกข้อมูลรถยนต์เรียบร้อยแล้ว"); setLoading(true); await load();
-    } catch (error) {
-      if (error instanceof ApiError && [401, 403].includes(error.status)) { router.replace("/admin/login"); router.refresh(); }
-      throw error;
+      const [catalog, countryList] = await Promise.all([adminRequest<{ data: FleetCatalogData }>("/api/fleet/catalog"), adminRequest<{ data: Country[] }>("/api/countries")]);
+      if (id !== requestId.current) return;
+      setData(catalog.data); setCountries(countryList.data); setError(""); setLoaded(true);
+      const activeCountries = new Set(catalog.data.offers.filter((offer) => offer.isActive).map((offer) => offer.location.countryCode));
+      setNetwork({ summary: catalog.data.summary, countries: countryList.data.filter((country) => activeCountries.has(country.code)) });
+    } catch (cause) { if (id === requestId.current) { authorize(cause); setError((cause as Error).message); } }
+    finally { if (id === requestId.current) setLoading(false); }
+  }, [authorize, setNetwork]);
+  useEffect(() => { const requests = requestId; const timer = setTimeout(() => void load(), 0); return () => { clearTimeout(timer); requests.current++; }; }, [load]);
+
+  function navigate(change: Record<string, string>, push = false) {
+    const next = new URLSearchParams(params.toString());
+    for (const [key, value] of Object.entries(change)) {
+      if (value === "all" || value === "" || key === "page" && value === "1") next.delete(key); else next.set(key, value);
     }
+    const url = `/admin/cars${next.size ? `?${next}` : ""}`;
+    if (push) window.history.pushState(null, "", url); else window.history.replaceState(null, "", url);
   }
-  const filtered = filterAdminCars(cars, filters);
-  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
-  const currentPage = Math.min(page, totalPages);
-  const rows = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
-  const ready = cars.filter((car) => car.isAvailable && car.rentalStatus === "IDLE").length;
-  const booked = cars.filter((car) => car.rentalStatus !== "IDLE").length;
-  const maintenance = cars.filter((car) => !car.isAvailable).length;
-  const categoryBase = filterAdminCars(cars, { ...filters, category: "all" });
+  async function mutate(path: string, method: string, body: unknown) {
+    try { await adminRequest(path, method, body); }
+    catch (cause) { authorize(cause); throw cause; }
+    setModal(null); setNotice("บันทึกข้อมูลเรียบร้อยแล้ว"); await load();
+  }
+  async function saveInventory(body: InventoryMutation) {
+    const item = modal?.kind === "car" ? modal.item : null;
+    await mutate(item ? `/api/fleet/cars/${encodeURIComponent(item.id)}` : "licensePlates" in body ? "/api/fleet/cars/bulk" : "/api/fleet/cars", item ? "PATCH" : "POST", body);
+  }
   function exportCsv() {
-    const url = URL.createObjectURL(new Blob([carsCsv(filtered)], { type: "text/csv;charset=utf-8" }));
-    const link = document.createElement("a"); link.href = url; link.download = "funch-cars.csv"; link.click();
+    const url = URL.createObjectURL(new Blob([fleetCsv(results.units)], { type: "text/csv;charset=utf-8" }));
+    const link = document.createElement("a"); link.href = url; link.download = "funch-fleet.csv"; link.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
-
-  return <div className="space-y-6">
-    <div className="flex flex-wrap items-start justify-between gap-4"><div><p className="mb-1 text-[11px] font-medium tracking-widest text-blue-600">FLEET MANAGEMENT</p><h1 className="text-2xl font-bold tracking-tight text-slate-900">จัดการข้อมูลรถยนต์</h1><p className="mt-1.5 text-xs text-slate-500">จัดการฝูงรถ อัตราค่าเช่า และความพร้อมให้บริการทั่วโลก</p></div><div className="flex gap-2"><button disabled={loading || !!error || !filtered.length} onClick={exportCsv} className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-medium text-slate-600 shadow-sm hover:bg-slate-50">↓ ส่งออก CSV</button><button disabled={loading || !!error || !countries.length} onClick={() => setEditing("new")} className="btn-primary px-4 py-2.5 text-xs shadow-sm">＋ เพิ่มรถยนต์ใหม่</button></div></div>
+  const actions = {
+    onEdit: (unit: FleetUnit) => setModal({ kind: "car", item: unit }), onHistory: (unit: FleetUnit) => setModal({ kind: "history", unit }),
+    onTransfer: (unit: FleetUnit) => setModal({ kind: "transfer", unitId: unit.id }),
+    onStatus: (unit: FleetUnit) => setModal(unit.carModelLocationId ? { kind: "status", unit } : { kind: "car", item: unit }),
+  };
+  const disabled = loading || !!error;
+  return <div className="space-y-5">
+    <div className="flex flex-wrap items-start justify-between gap-4"><div><div className="mb-2 flex flex-wrap items-center gap-2 text-[10px] font-medium"><span className="tracking-widest text-blue-600">FLEET MANAGEMENT</span><span className="rounded-full bg-blue-100 px-2 py-0.5 text-blue-700">Multi-Location Fleet</span></div><h1 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">ระบบจัดการรุ่นรถและฝูงรถยนต์</h1><p className="mt-1.5 text-xs leading-6 text-slate-500">จัดการสเปกรุ่นรถ บริการรายสาขา และทะเบียนรถจริงทั้งหมดในที่เดียว</p></div><div className="flex flex-wrap gap-2 text-[11px]"><button disabled={disabled || !data.units.length} onClick={() => setModal({ kind: "transfer" })} className="flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-slate-600 shadow-sm hover:bg-slate-50"><AdminIcon name="transfer" className="h-4 w-4 text-indigo-600" />ย้ายรถข้ามสาขา</button><button disabled={disabled || !data.offers.length} onClick={() => setModal({ kind: "car", item: null })} className="flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2.5 font-medium text-blue-700 hover:bg-blue-100"><AdminIcon name="plus" className="h-4 w-4" />เพิ่มคันรถจริง</button><button disabled={disabled || !data.models.length} onClick={() => setModal({ kind: "offer", item: null })} className="flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2.5 font-medium text-emerald-800 hover:bg-emerald-100"><AdminIcon name="location" className="h-4 w-4" />เปิดรุ่นในสาขา</button><button disabled={disabled} onClick={() => setModal({ kind: "model", item: null })} className="btn-primary flex items-center gap-1.5 px-3 py-2.5 shadow-sm"><AdminIcon name="plus" className="h-4 w-4" />เพิ่มรุ่นรถใหม่</button></div></div>
     {notice && <div role="status" className="flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">{notice}<button onClick={() => setNotice("")} aria-label="ปิดข้อความสำเร็จ" className="px-2">×</button></div>}
-    <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">{[
-      { label: "รถทั้งหมดในระบบ", value: cars.length, detail: `ครอบคลุม ${new Set(cars.map((car) => car.country)).size} ประเทศ`, color: "text-blue-600", bg: "bg-blue-50", icon: "car" as const },
-      { label: "พร้อมให้บริการ", value: ready, detail: "เปิดให้บริการและไม่มีรายการจอง", color: "text-emerald-600", bg: "bg-emerald-50", icon: "car" as const },
-      { label: "กำลังเช่า / จองอยู่", value: booked, detail: "รายการจองที่รออนุมัติหรืออนุมัติแล้ว", color: "text-blue-600", bg: "bg-blue-50", icon: "booking" as const },
-      { label: "ซ่อมบำรุง / ปิดบริการ", value: maintenance, detail: "พักการรับจองรถชั่วคราว", color: "text-amber-600", bg: "bg-amber-50", icon: "car" as const },
-    ].map((stat) => <div key={stat.label} className="flex items-center justify-between gap-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"><div><p className="text-[11px] text-slate-500">{stat.label}</p><p className={`mt-2 text-3xl font-bold ${stat.color}`}>{loading || error ? "—" : stat.value}<span className="ml-2 text-xs font-normal text-slate-400">คัน</span></p><p className="mt-2 text-[10px] text-slate-400">{stat.detail}</p></div><span className={`hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl sm:flex ${stat.bg} ${stat.color}`}><AdminIcon name={stat.icon} /></span></div>)}</div>
-    <section aria-label="ตัวกรองรถยนต์" className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-[2fr_1fr_1fr_1fr]"><input aria-label="ค้นหารถยนต์" placeholder="ค้นหายี่ห้อ รุ่น ทะเบียน หรือผู้ให้บริการ…" value={filters.search} onChange={(event) => changeFilter("search", event.target.value)} className="form-input py-2.5" /><select aria-label="กรองประเทศ" className="form-input" value={filters.country} onChange={(event) => changeFilter("country", event.target.value)}><option value="all">ทุกประเทศ</option>{countries.map((country) => <option key={country.code} value={country.code}>{country.flag} {country.name}</option>)}</select><select aria-label="กรองสถานะ" className="form-input" value={filters.status} onChange={(event) => changeFilter("status", event.target.value)}><option value="all">สถานะทั้งหมด</option><option value="available">พร้อมให้บริการ</option><option value="booked">กำลังเช่า / จองอยู่</option><option value="maintenance">ซ่อมบำรุง / ปิดบริการ</option></select><select aria-label="กรองพวงมาลัย" className="form-input" value={filters.steering} onChange={(event) => changeFilter("steering", event.target.value)}><option value="all">พวงมาลัยทั้งหมด</option><option value="right">พวงมาลัยขวา (RHD)</option><option value="left">พวงมาลัยซ้าย (LHD)</option></select></div>
-      <div className="flex flex-wrap items-center gap-2"><span className="mr-1 text-[11px] text-slate-400">ประเภท:</span>{["all", ...carCategories].map((category) => <button key={category} aria-pressed={filters.category === category} onClick={() => changeFilter("category", category)} className={`rounded-lg px-3 py-1.5 text-[11px] font-medium transition ${filters.category === category ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}>{category === "all" ? "ทั้งหมด" : category} ({category === "all" ? categoryBase.length : categoryBase.filter((car) => car.categories.includes(category as typeof carCategories[number])).length})</button>)}<button onClick={() => { setFilters(defaultCarFilters); setPage(1); }} className="ml-auto px-2 py-1 text-[11px] text-blue-600 hover:underline">ล้างตัวกรอง</button></div>
-    </section>
-    <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"><div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 px-5 py-4"><div className="flex items-center gap-3"><h2 className="text-sm font-semibold text-slate-900">รายการรถยนต์ในระบบ</h2><span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] text-slate-500">{filtered.length} คัน</span></div><button onClick={refresh} disabled={loading} className="text-xs text-blue-600 hover:underline">↻ โหลดข้อมูลใหม่</button></div>
-      {loading ? <p role="status" className="p-12 text-center text-sm text-slate-500">กำลังโหลดข้อมูลรถยนต์…</p> : error ? <div role="alert" className="p-10 text-center"><p className="text-sm text-red-600">{error}</p><button onClick={refresh} className="btn-primary mt-4 px-4 py-2 text-xs">ลองอีกครั้ง</button></div> : <>
-        <div className="overflow-x-auto"><table className="w-full min-w-[1050px] text-left text-xs"><thead className="border-b border-slate-200 bg-slate-50 text-[10px] text-slate-500"><tr>{["ข้อมูลรถยนต์ / ยี่ห้อและรุ่น", "ประเทศและจุดรับรถ", "ประเภท / สเปก", "พวงมาลัย", "รายชั่วโมง", "รายวัน", "สถานะ", "จัดการ"].map((label) => <th key={label} scope="col" className="px-4 py-3.5 font-medium">{label}</th>)}</tr></thead><tbody className="divide-y divide-slate-100">{rows.map((car) => { const country = countries.find((item) => item.code === car.country); return <tr key={car.id} className={`${car.isAvailable ? "hover:bg-slate-50/70" : "bg-amber-50/30 hover:bg-amber-50/60"}`}><td className="px-4 py-4"><div className="flex items-center gap-3"><span className={`flex h-10 w-12 shrink-0 items-center justify-center rounded-lg border ${car.fuel === "EV" ? "border-emerald-100 bg-emerald-50 text-emerald-600" : "border-blue-100 bg-blue-50 text-blue-600"}`}><AdminIcon name="car" className="h-6 w-6" /></span><div><p className="min-w-40 font-semibold text-slate-900">{car.name}</p><p className="mt-1 text-[10px] text-slate-400">ปี {car.year} <span className="mx-1">·</span><span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-slate-600">{car.licensePlate}</span></p><p className="mt-1 text-[10px] text-slate-400">{car.provider}</p></div></div></td><td className="px-4 py-4"><p className="font-medium">{country?.flag} {country?.name || car.country}</p><p className="mt-1 max-w-40 text-[10px] leading-5 text-slate-500">{car.city} · {car.location?.nameTh || "ยังไม่ระบุจุดรับรถ"}</p></td><td className="px-4 py-4"><span className="rounded bg-slate-100 px-2 py-1 text-[10px] font-medium text-slate-600">{car.category}</span><p className="mt-2 text-[10px] text-slate-400">{car.seats} ที่นั่ง · {car.fuel}</p><p className="mt-0.5 text-[10px] text-slate-400">{car.gear}</p></td><td className="whitespace-nowrap px-4 py-4"><span className={`rounded px-2 py-1 text-[10px] font-medium ${car.steering === "right" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>{car.steering === "right" ? "ขวา (RHD)" : "ซ้าย (LHD)"}</span></td><td className="whitespace-nowrap px-4 py-4 font-medium text-slate-700">{money(car.hour)}</td><td className="whitespace-nowrap px-4 py-4 font-bold text-blue-600">{money(car.day)}</td><td className="whitespace-nowrap px-4 py-4"><span className={`rounded-full px-2.5 py-1 text-[10px] font-medium ${!car.isAvailable ? "bg-amber-100 text-amber-800" : car.rentalStatus !== "IDLE" ? "bg-blue-100 text-blue-800" : "bg-emerald-100 text-emerald-800"}`}>{!car.isAvailable ? "● ซ่อมบำรุง" : car.rentalStatus === "IN_USE" ? "● กำลังใช้งาน" : car.rentalStatus === "RESERVED" ? "● จองอยู่" : "● พร้อมบริการ"}</span>{!car.isAvailable && car.rentalStatus !== "IDLE" && <p className="mt-1 text-[10px] text-blue-600">มีรายการจอง</p>}</td><td className="px-4 py-4"><button onClick={() => setEditing(car)} aria-label={`แก้ไข ${car.name}`} className="rounded-lg border border-blue-100 px-2.5 py-1.5 text-[11px] font-medium text-blue-600 hover:bg-blue-50">แก้ไข</button></td></tr>; })}</tbody></table></div>
-        {!filtered.length && <div className="p-12 text-center"><p className="font-medium text-slate-700">{cars.length ? "ไม่พบรถยนต์ที่ตรงกับตัวกรอง" : "ยังไม่มีรถยนต์ในระบบ"}</p><p className="mt-2 text-xs text-slate-400">{cars.length ? "ลองเปลี่ยนคำค้นหาหรือล้างตัวกรอง" : "เริ่มต้นด้วยการเพิ่มรถยนต์ใหม่"}</p></div>}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 bg-slate-50 px-5 py-4 text-[11px] text-slate-500"><p>แสดง {filtered.length ? (currentPage - 1) * pageSize + 1 : 0} – {Math.min(currentPage * pageSize, filtered.length)} จาก {filtered.length} รายการ</p><nav aria-label="แบ่งหน้ารายการรถยนต์" className="flex items-center gap-2"><button disabled={currentPage === 1} onClick={() => setPage(currentPage - 1)} className="rounded-lg border border-slate-200 bg-white px-3 py-1.5">ย้อนกลับ</button><span className="rounded-lg bg-blue-600 px-3 py-1.5 font-medium text-white" aria-current="page">{currentPage} / {totalPages}</span><button disabled={currentPage === totalPages} onClick={() => setPage(currentPage + 1)} className="rounded-lg border border-slate-200 bg-white px-3 py-1.5">ถัดไป</button></nav></div>
-      </>}
-    </section>
-    <p className="text-[10px] leading-5 text-slate-400">อัตราค่าเช่าแสดงเป็น THB · รถที่มีรายการจองและปิดบริการอาจนับรวมอยู่ทั้งสองกลุ่ม · สถานะอัปเดตเมื่อโหลดข้อมูลใหม่</p>
-    {editing && <CarForm car={editing === "new" ? null : editing} countries={countries} onClose={() => setEditing(null)} onSave={save} />}
+    <FleetOverview summary={loaded && !error ? data.summary : undefined} loading={loading} />
+    <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-linear-to-r from-blue-900 to-indigo-900 p-5 text-white shadow-sm"><div className="flex items-start gap-3"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-blue-600 bg-blue-800/70"><AdminIcon name="models" /></span><div><h2 className="text-sm font-semibold">สร้างรุ่นครั้งเดียว จัดการรถได้หลายสาขา</h2><p className="mt-1 text-[11px] leading-6 text-blue-200">กำหนดสเปกร่วมให้รุ่นรถ ตั้งราคาแยกตามสาขา แล้วเพิ่มทะเบียนและดูสถานะของรถแต่ละคัน</p></div></div><div className="flex flex-wrap items-center gap-2 rounded-xl border border-blue-700 bg-blue-950/40 px-4 py-3 text-xs font-medium"><span className="text-emerald-300">รุ่นรถ</span><span aria-hidden="true" className="text-blue-400">→</span><span className="text-amber-200">สาขาและราคา</span><span aria-hidden="true" className="text-blue-400">→</span><span className="text-cyan-200">รถรายคัน</span></div></div>
+    <FleetFilters filters={filters} countries={countries} view={view} counts={counts} onChange={(change) => navigate({ ...change, page: "1" })} onView={(next) => navigate({ view: next, page: "1" }, true)} />
+    <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-sm font-semibold text-slate-800">{view === "model" ? "รุ่นรถและสาขาที่ให้บริการ" : view === "location" ? "ภาพรวมรถยนต์ตามสาขา" : "รายการคันรถจริงทั้งหมด"}<span className="ml-2 rounded-full bg-slate-200/70 px-2 py-0.5 text-[10px] font-normal text-slate-500">{count} {view === "model" ? "รุ่น" : view === "location" ? "สาขา" : "คัน"}</span></h2><div className="flex items-center gap-4 text-[11px]"><button onClick={() => void load()} disabled={loading} className="text-blue-600 hover:underline">{loading ? "กำลังโหลด…" : "↻ โหลดข้อมูลใหม่"}</button>{view === "fleet" && <button disabled={disabled || !results.units.length} onClick={exportCsv} className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-slate-600 hover:bg-slate-50">↓ ส่งออก CSV</button>}</div></div>
+    {error && <div role="alert" className="rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">{error}<button onClick={() => void load()} className="ml-3 underline">ลองอีกครั้ง</button></div>}
+    {!loaded && loading && <div role="status" className="rounded-2xl border border-slate-200 bg-white p-12 text-center text-sm text-slate-400">กำลังโหลดรุ่นรถ สาขา และทะเบียนรถ…</div>}
+    {(["model", "location", "fleet"] as const).map((panel) => <div key={panel} id={`fleet-panel-${panel}`} role="tabpanel" aria-labelledby={`fleet-tab-${panel}`} tabIndex={0} hidden={view !== panel} aria-busy={loading}>
+      {loaded && !error && view === panel && <>{count === 0 && !(panel === "model" && ungrouped.length) ? <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center"><AdminIcon name="car" className="mx-auto h-10 w-10 text-slate-300" /><p className="mt-3 text-sm font-medium text-slate-700">{data.models.length || data.units.length ? "ไม่พบข้อมูลที่ตรงกับตัวกรอง" : "เริ่มต้นจัดการฝูงรถของคุณ"}</p><p className="mt-2 text-xs text-slate-400">{data.models.length || data.units.length ? "ลองเปลี่ยนคำค้นหาหรือล้างตัวกรอง" : "เพิ่มรุ่นรถ เปิดบริการในสาขา แล้วเพิ่มทะเบียนรถจริง"}</p></div> : panel === "model" ? <><FleetModelView models={results.models.slice(start, start + pageSize)} offers={results.offers} units={results.units} countries={countries} onModel={(item) => setModal({ kind: "model", item })} onOffer={(modelId, item, locationId) => setModal({ kind: "offer", item: item || null, modelId, locationId })} onAdd={(context) => setModal({ kind: "car", item: null, ...context })} {...actions} />{!!ungrouped.length && <section className="mt-5 overflow-hidden rounded-2xl border border-amber-200 bg-white"><h3 className="border-b border-amber-100 bg-amber-50 p-4 text-sm font-medium text-amber-800">รถที่ยังไม่จัดกลุ่ม ({ungrouped.length} คัน)</h3><FleetUnitTable units={ungrouped} {...actions} /></section>}</> : panel === "location" ? <FleetLocationView countries={countries} locationIds={pagedLocations} offers={results.offers} units={results.units} onManage={(location, model) => navigate({ view: "model", location, model: model || "all", page: "1" }, true)} onOffer={(locationId) => setModal({ kind: "offer", item: null, locationId })} /> : <section aria-label="ตารางทะเบียนรถ" className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"><FleetUnitTable units={results.units.slice(start, start + pageSize)} {...actions} /></section>}</>}
+    </div>)}
+    {loaded && !error && count > 0 && <nav aria-label="แบ่งหน้าผลลัพธ์" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-[11px] text-slate-500"><p>แสดง {start + 1}–{Math.min(start + pageSize, count)} จาก {count} {view === "model" ? "รุ่น" : view === "location" ? "สาขา" : "คัน"}</p><div className="flex items-center gap-2"><button disabled={page === 1} onClick={() => navigate({ page: String(page - 1) }, true)} className="rounded-lg border border-slate-200 px-3 py-1.5">ย้อนกลับ</button><span aria-current="page" className="rounded-lg bg-blue-600 px-3 py-1.5 text-white">{page} / {totalPages}</span><button disabled={page === totalPages} onClick={() => navigate({ page: String(page + 1) }, true)} className="rounded-lg border border-slate-200 px-3 py-1.5">ถัดไป</button></div></nav>}
+    <p className="text-[10px] leading-5 text-slate-400">อัตราค่าเช่าเป็น THB · จำนวนรถนับตามตำแหน่งปัจจุบัน · ความว่างตามช่วงวันเช่าตรวจสอบอีกครั้งเมื่อจอง · ภาพรวมด้านบนเป็นยอดทั้งระบบ</p>
+    {modal?.kind === "model" && <ModelForm model={modal.item} onClose={() => setModal(null)} onSave={(body) => mutate(`/api/fleet/models${modal.item ? `/${encodeURIComponent(modal.item.id)}` : ""}`, modal.item ? "PATCH" : "POST", body)} />}
+    {modal?.kind === "offer" && <OfferForm offer={modal.item} initialModelId={modal.modelId} initialLocationId={modal.locationId} models={data.models} countries={countries} onClose={() => setModal(null)} onSave={(body) => mutate(`/api/fleet/offers${modal.item ? `/${encodeURIComponent(modal.item.id)}` : ""}`, modal.item ? "PATCH" : "POST", body)} />}
+    {modal?.kind === "car" && <CarForm car={modal.item} catalog={data} initialModelId={modal.modelId} initialLocationId={modal.locationId} initialOfferId={modal.offerId} onClose={() => setModal(null)} onSave={saveInventory} />}
+    {modal?.kind === "transfer" && <TransferVehicleForm units={data.units} offers={data.offers} initialUnitId={modal.unitId} onClose={() => setModal(null)} onSave={(unit, body) => mutate(`/api/fleet/cars/${encodeURIComponent(unit.id)}`, "PATCH", body)} />}
+    {modal?.kind === "history" && <CarSchedule car={modal.unit} onClose={() => setModal(null)} onChanged={() => void load()} />}
+    {modal?.kind === "status" && <StatusForm unit={modal.unit} onClose={() => setModal(null)} onSave={(body) => mutate(`/api/fleet/cars/${encodeURIComponent(modal.unit.id)}`, "PATCH", body)} />}
   </div>;
 }

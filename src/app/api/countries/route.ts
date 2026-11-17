@@ -15,9 +15,9 @@ export async function GET() {
     }
     const data = await res.json();
     return NextResponse.json(data);
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json(
-      { success: false, message: error.message || "Failed to connect to backend" },
+      { success: false, message: error instanceof Error ? error.message : "Failed to connect to backend" },
       { status: 502 },
     );
   }

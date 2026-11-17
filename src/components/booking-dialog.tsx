@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Dialog } from "./rental-dialog";
 import { api, ApiError, signIn, type Member } from "@/lib/account";
 import { bookingInstant } from "@/lib/booking-time";
-import { money, type Car, type Country, type SearchCriteria } from "@/lib/rental";
+import { money, resolveLocation, type Car, type Country, type SearchCriteria } from "@/lib/rental";
 
 type Calculation = { totalPrice: number; days: number; hours: number; breakdown: string };
 type Booking = { id: string; bookingNumber: string; totalPrice: string | number; status: string };
@@ -32,23 +32,24 @@ export function BookingDialog({
   const [quote, setQuote] = useState<{ key: string; calculation: Calculation } | null>(null);
   const [quoteError, setQuoteError] = useState("");
   const [quoteRetry, setQuoteRetry] = useState(0);
+  const [openedAt] = useState(() => Date.now());
   const locations = countries.find((country) => country.code === car?.country)?.locations ?? [];
   const pickup = car?.location ?? locations.find((location) => location.id === car?.locationId);
   const [dropoffId, setDropoffId] = useState(() => {
-    const requested = criteria.return_location;
-    return (requested ? locations.find((location) => requested.includes(location.nameTh) || requested.includes(location.name)) : undefined)?.id ?? pickup?.id ?? "";
+    return resolveLocation(locations, criteria.dropoffLocationId, criteria.return_location)?.id ?? pickup?.id ?? "";
   });
+  const dropoff = locations.find((location) => location.id === dropoffId);
   let start = "", end = "", dateError = "";
   if (!authOnly) {
     try {
       if (!pickup?.timeZone) throw new Error("ไม่พบสถานที่รับรถ กรุณาเลือกรถใหม่");
       start = bookingInstant(dates.pickup_date, dates.pickup_time, pickup.timeZone);
-      end = bookingInstant(dates.return_date, dates.return_time, pickup.timeZone);
+      end = bookingInstant(dates.return_date, dates.return_time, dropoff?.timeZone || pickup.timeZone);
       if (end <= start) throw new Error("วันและเวลาคืนรถต้องหลังวันและเวลารับรถ");
-      if (Date.parse(start) <= Date.now()) throw new Error("กรุณาเลือกวันและเวลารับรถในอนาคต");
+      if (Date.parse(start) <= openedAt) throw new Error("กรุณาเลือกวันและเวลารับรถในอนาคต");
     } catch (cause) { dateError = (cause as Error).message; }
   }
-  const quoteKey = !dateError && car ? `${car.id}|${start}|${end}` : "";
+  const quoteKey = !dateError && car ? `${car.id}|${start}|${end}|${dropoffId}` : "";
   const calculation = quote?.key === quoteKey ? quote.calculation : null;
   useEffect(() => {
     if (!quoteKey || authOnly || !car) return;
@@ -56,12 +57,13 @@ export function BookingDialog({
     const timer = setTimeout(() => {
       setQuoteError("");
       api<{ data: { calculation: Calculation } }>("/api/bookings/calculate", {
-        carId: car.id, startDateTime: start, endDateTime: end,
+        ...(car.carModelLocationId ? { carModelLocationId: car.carModelLocationId } : { carId: car.id }),
+        startDateTime: start, endDateTime: end, pickupLocationId: pickup?.id, dropoffLocationId: dropoffId,
       }).then((data) => { if (active) setQuote({ key: quoteKey, calculation: data.data.calculation }); })
         .catch((cause: Error) => { if (active) setQuoteError(cause.message); });
     }, 250);
     return () => { active = false; clearTimeout(timer); };
-  }, [quoteKey, authOnly, car, start, end, quoteRetry]);
+  }, [quoteKey, authOnly, car, start, end, quoteRetry, pickup?.id, dropoffId]);
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -94,9 +96,11 @@ export function BookingDialog({
         throw new Error(dateError || "กรุณาตรวจสอบสถานที่และรอระบบคำนวณราคาก่อนยืนยัน");
       }
       const booked = await api<{ data: Booking }>("/api/bookings", {
-        carId: car.id, startDateTime: start, endDateTime: end,
+        ...(car.carModelLocationId ? { carModelLocationId: car.carModelLocationId } : { carId: car.id }),
+        startDateTime: start, endDateTime: end,
         pickupLocationId: pickup.id, dropoffLocationId: dropoffId,
         driverName: value("driverName"), internationalDrivingPermit: value("license"),
+        quotedTotal: calculation.totalPrice,
         ...(!member ? { registerUser: registration } : {}),
       });
       setResult({ message: "บันทึกรายการจองสำเร็จ", booking: booked.data });
@@ -106,6 +110,7 @@ export function BookingDialog({
       }
     } catch (cause) {
       if (cause instanceof ApiError && cause.status === 401 && member) onMemberChange(null);
+      if (cause instanceof ApiError && cause.status === 409) { setQuote(null); setQuoteRetry((value) => value + 1); }
       setError((cause as Error).message);
     } finally { inFlight.current = false; setBusy(false); }
   };
@@ -147,7 +152,8 @@ export function BookingDialog({
           <fieldset disabled={busy || sessionLoading} className="space-y-3">
             {!authOnly && <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs">
               <p>จุดรับรถ: <strong>{pickup?.nameTh || pickup?.name || car?.city}</strong></p>
-              <p className="text-slate-500">วันและเวลาทั้งหมดเป็นเวลาท้องถิ่น ณ จุดรับรถ ({pickup?.timeZone})</p>
+              <p className="text-slate-500">เวลารับรถ: {pickup?.timeZone} · เวลาคืนรถ: {dropoff?.timeZone || pickup?.timeZone}</p>
+              {dropoff?.timeZone !== pickup?.timeZone && <p className="text-slate-500">เกณฑ์ราคาคืนหลัง 14:00 น. อิงเขตเวลาของสาขารับรถ</p>}
               <div className="grid grid-cols-2 gap-2">
                 {([
                   ["วันที่รับรถ", "pickup_date", "date"], ["เวลารับรถ", "pickup_time", "time"],

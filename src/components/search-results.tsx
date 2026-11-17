@@ -6,6 +6,7 @@ import {
   getSearchCities,
   money,
   rentalDuration,
+  resolveLocation,
   type Car,
   type Country,
   type SearchCriteria,
@@ -133,11 +134,11 @@ export function SearchResults({
       (car) =>
         (!filters.cities.length || filters.cities.includes(car.city)) &&
         (!filters.categories.length ||
-          filters.categories.includes(car.category) ||
+          filters.categories.includes(car.category) || car.categories?.some((category) => filters.categories.includes(category)) ||
           (filters.categories.includes("EV") && car.fuel === "EV")) &&
         (filters.steering === "all" || car.steering === filters.steering) &&
         (!filters.transmission.length ||
-          filters.transmission.includes("automatic")) &&
+          filters.transmission.includes(car.transmissionType === "MANUAL" ? "manual" : "automatic")) &&
         (!filters.seats.length ||
           filters.seats.some((seats) =>
             seats === "5"
@@ -325,16 +326,13 @@ export function SearchResults({
                 id="filter-country"
                 value={filters.country}
                 onChange={(event) => {
-                  setFilters((current) => ({
-                    ...current,
-                    country: event.target.value,
-                    cities: [],
-                  }));
-                  setPage(1);
+                  const selected = getCountry(event.target.value, countries);
+                  onEdit({ ...criteria, country: selected.code, location: selected.location,
+                    locationId: resolveLocation(selected.locations || [], undefined, selected.location)?.id,
+                    return_location: undefined, dropoffLocationId: undefined });
                 }}
                 className="form-input bg-slate-50"
               >
-                <option value="all">🌍 ทุกประเทศ</option>
                 {countries.map((item) => (
                   <option key={item.code} value={item.code}>
                     {item.flag} {item.name} ({item.english})
@@ -492,7 +490,7 @@ export function SearchResults({
                 }}
                 className="btn-primary w-full py-2.5 text-xs shadow-md"
               >
-                แสดงผลลัพธ์ ({filtered.length} คัน)
+                แสดงผลลัพธ์ ({filtered.length} รายการ)
               </button>
             </div>
           </aside>
@@ -508,7 +506,7 @@ export function SearchResults({
                   className="scroll-mt-24 text-sm font-bold text-slate-900"
                 >
                   พบรถทั้งหมด{" "}
-                  <span className="text-blue-600">{filtered.length} คัน</span>{" "}
+                  <span className="text-blue-600">{filtered.length} รายการ</span>{" "}
                   <span className="text-xs font-normal text-slate-500">
                     • ข้อมูลรถตัวอย่าง
                   </span>
@@ -646,7 +644,7 @@ export function SearchResults({
             >
               <p className="text-slate-500">
                 แสดง {filtered.length ? (page - 1) * 4 + 1 : 0} -{" "}
-                {Math.min(page * 4, filtered.length)} จาก {filtered.length} คัน
+                {Math.min(page * 4, filtered.length)} จาก {filtered.length} รายการ
               </p>
               <div className="flex items-center gap-1.5">
                 <button
