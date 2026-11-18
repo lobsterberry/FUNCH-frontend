@@ -75,9 +75,11 @@ export function AdminReports({ today }: { today: string }) {
       setLoading(true); setError(''); setExportError('');
       try {
         const response = await fetch(`/api/admin/reports?${query}`, { cache: 'no-store', signal: controller.signal });
-        const result = await response.json();
         if (response.status === 401 || response.status === 403) { router.replace('/admin/login'); router.refresh(); return; }
-        if (!response.ok || !result.success) throw new Error(response.status === 400 ? 'ช่วงวันที่หรือตัวกรองไม่ถูกต้อง กรุณาเลือกช่วง 1–366 วัน' : 'โหลดรายงานไม่สำเร็จ กรุณาลองอีกครั้ง');
+        if (response.status === 400) throw new Error('ช่วงวันที่หรือตัวกรองไม่ถูกต้อง กรุณาเลือกช่วง 1–366 วัน');
+        const isJson = response.headers.get('content-type')?.split(';')[0] === 'application/json';
+        const result = response.ok && isJson ? await response.json().catch(() => null) : null;
+        if (!result?.success || !result.data) throw new Error('โหลดรายงานไม่สำเร็จ กรุณาลองอีกครั้ง');
         if (id === requestId.current) { setData(result.data); setLoadedQuery(query); }
       } catch (cause) { if (!controller.signal.aborted && id === requestId.current) setError(cause instanceof TypeError ? 'เชื่อมต่อระบบไม่สำเร็จ กรุณาลองอีกครั้ง' : (cause as Error).message); }
       finally { if (id === requestId.current) setLoading(false); }
@@ -105,7 +107,9 @@ export function AdminReports({ today }: { today: string }) {
     try {
       const response = await fetch(`/api/admin/reports?${new URLSearchParams({ ...data.filters, format: 'csv' })}`, { cache: 'no-store' });
       if (response.status === 401 || response.status === 403) { router.replace('/admin/login'); router.refresh(); return; }
-      if (!response.ok) throw new Error('ส่งออกรายงานไม่สำเร็จ กรุณาลองอีกครั้ง');
+      if (!response.ok || response.headers.get('content-type')?.split(';')[0] !== 'text/csv') {
+        throw new Error('ส่งออกรายงานไม่สำเร็จ กรุณาลองอีกครั้ง');
+      }
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement('a'); anchor.href = url; anchor.download = `funch-booking-report-${data.filters.start}-${data.filters.end}.csv`;

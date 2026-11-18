@@ -14,6 +14,24 @@ const actionColors: Record<ReviewAction, string> = {
   APPROVED: 'bg-emerald-600 hover:bg-emerald-700', REJECTED: 'bg-rose-600 hover:bg-rose-700',
   CANCELLED: 'bg-rose-600 hover:bg-rose-700', COMPLETED: 'bg-blue-600 hover:bg-blue-700',
 };
+const actionCheckboxStyles: Record<ReviewAction, { active: string; accent: string }> = {
+  APPROVED: {
+    active: 'border-emerald-500 bg-emerald-50/70 text-emerald-950 ring-1 ring-emerald-500/20',
+    accent: 'accent-emerald-600',
+  },
+  REJECTED: {
+    active: 'border-rose-500 bg-rose-50/70 text-rose-950 ring-1 ring-rose-500/20',
+    accent: 'accent-rose-600',
+  },
+  CANCELLED: {
+    active: 'border-rose-500 bg-rose-50/70 text-rose-950 ring-1 ring-rose-500/20',
+    accent: 'accent-rose-600',
+  },
+  COMPLETED: {
+    active: 'border-blue-500 bg-blue-50/70 text-blue-950 ring-1 ring-blue-500/20',
+    accent: 'accent-blue-600',
+  },
+};
 function Detail({ label, children }: { label: string; children: ReactNode }) {
   return <div><dt className="text-[11px] text-slate-500">{label}</dt><dd className="mt-1 break-words text-sm text-slate-800">{children}</dd></div>;
 }
@@ -75,7 +93,39 @@ export function BookingReview({ booking, initialAction, onClose, onSave }: {
       {(booking.reviewedAt || booking.adminNote) && <section className="rounded-xl bg-slate-50 p-4"><h3 className="text-sm font-semibold">ผลการพิจารณาล่าสุด</h3><p className="mt-2 text-xs text-slate-500">{booking.approvedBy?.name || 'ผู้ดูแลระบบ'}{booking.reviewedAt ? ` · ${bookingDate(booking.reviewedAt)} · Asia/Bangkok` : ''}</p>{booking.adminNote && <p className="mt-2 whitespace-pre-wrap break-words text-sm text-slate-700">{booking.adminNote}</p>}</section>}
       {actions.length > 0 && <form onSubmit={submit} className="border-t border-slate-200 pt-5" aria-busy={busy}>
         <h3 className="text-sm font-semibold">พิจารณารายการจอง</h3><p className="mt-1 text-xs leading-6 text-slate-500">ตรวจสอบข้อมูลผู้ขับขี่ กำหนดการ และยอดรวมก่อนยืนยัน ระบบจะตรวจสอบตารางรถอีกครั้งเมื่อบันทึก</p>
-        <div className="mt-3 flex flex-wrap gap-2">{actions.map((item) => <button key={item} type="button" disabled={busy || stale || item === 'COMPLETED' && !canComplete} aria-pressed={action === item} onClick={() => { setAction(item); setError(''); }} className={`rounded-xl border px-4 py-2.5 text-xs font-medium ${action === item ? `${actionColors[item]} border-transparent text-white` : 'border-slate-300 bg-white text-slate-600 hover:bg-slate-50'}`}>{actionLabels[item]}</button>)}</div>
+        <div className="mt-3 flex flex-wrap gap-3">
+          {actions.map((item) => {
+            const isSelected = action === item;
+            const isDisabled = busy || stale || (item === 'COMPLETED' && !canComplete);
+            const style = actionCheckboxStyles[item];
+            return (
+              <label
+                key={item}
+                className={`flex items-center gap-2.5 rounded-xl border px-4 py-2.5 text-xs font-medium transition select-none ${
+                  isDisabled
+                    ? 'cursor-not-allowed opacity-50 border-slate-200 bg-slate-50 text-slate-400'
+                    : isSelected
+                    ? `${style.active} cursor-pointer`
+                    : 'border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50 cursor-pointer'
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  name="reviewAction"
+                  checked={isSelected}
+                  disabled={isDisabled}
+                  onChange={() => {
+                    if (isDisabled) return;
+                    setAction(isSelected ? null : item);
+                    setError('');
+                  }}
+                  className={`h-4 w-4 rounded border-slate-300 ${style.accent}`}
+                />
+                <span>{actionLabels[item]}</span>
+              </label>
+            );
+          })}
+        </div>
         {booking.status === 'APPROVED' && !canComplete && <p className="mt-2 text-[11px] text-slate-500">ยืนยันรับรถคืนได้เมื่อถึงกำหนดคืนรถ</p>}
         {action && <div className="mt-4 space-y-3"><label className="block text-xs font-medium text-slate-600">{needsReason ? 'เหตุผล (จำเป็น)' : 'บันทึกของแอดมิน (ไม่บังคับ)'}<textarea value={note} onChange={(event) => setNote(event.target.value)} required={needsReason} maxLength={2000} disabled={busy || stale} rows={3} placeholder={needsReason ? 'ระบุเหตุผลประกอบการพิจารณา' : 'บันทึกผลการตรวจสอบ'} className="form-input mt-2 resize-y" /></label><p className="text-right text-[10px] text-slate-400">{note.length}/2,000</p><p className="rounded-xl bg-amber-50 p-3 text-xs leading-6 text-amber-800">{action === 'APPROVED' ? 'ยืนยันอนุมัติรายการนี้และบันทึกชื่อผู้พิจารณา' : action === 'COMPLETED' ? 'ยืนยันว่าได้รับรถคืนและตรวจสภาพแล้ว ระบบจะย้ายรถไปสาขาคืนและเริ่มเวลาเตรียมรถ' : 'รายการนี้จะหยุดกันรถในตารางจอง โปรดตรวจสอบเหตุผลก่อนยืนยัน'}</p></div>}
         {error && <p role="alert" className="mt-4 rounded-xl bg-rose-50 p-3 text-sm text-rose-700">{error}</p>}
