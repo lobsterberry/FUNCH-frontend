@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { requireAdminPage } from '@/lib/admin-session';
-import { AdminBookings } from '@/components/admin/admin-bookings';
+import { AdminBookings } from '@/components/admin/bookings/admin-bookings';
 
 export const metadata: Metadata = { title: 'ระบบอนุมัติการจอง | FUNCH Admin' };
 

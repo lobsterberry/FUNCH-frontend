@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import RentalApp from "@/components/rental-app";
+import RentalApp from "@/components/site/rental-app";
 
 export const metadata: Metadata = {
   title: "ค้นหารถยนต์ | FUNCH Drive",

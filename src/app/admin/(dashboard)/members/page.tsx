@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { requireAdminPage } from '@/lib/admin-session';
-import { AdminMembers } from '@/components/admin/admin-members';
+import { AdminMembers } from '@/components/admin/members/admin-members';
 
 export const metadata: Metadata = { title: 'จัดการสมาชิก | FUNCH Admin' };
 

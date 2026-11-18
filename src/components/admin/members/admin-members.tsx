@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { ApiError } from '@/lib/account';
 import { memberDate, memberMoney, memberRequest, membersCsv, type AdminMember, type MemberInput, type MemberList } from '@/lib/admin-members';
 import { AdminIcon } from '../layout/admin-icon';
-import { Dialog } from '../rental-dialog';
+import { Dialog } from '@/components/shared/dialog';
 import { MemberForm } from './member-form';
 import { MemberDetails } from './member-details';
 

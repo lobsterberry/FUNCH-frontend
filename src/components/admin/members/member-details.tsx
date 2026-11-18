@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { memberDate, memberMoney, memberRequest, type MemberBooking, type MemberDetails as Details } from '@/lib/admin-members';
-import { Dialog } from '../rental-dialog';
+import { Dialog } from '@/components/shared/dialog';
 
 const statusLabels: Record<MemberBooking['status'], string> = {
   PENDING: 'รออนุมัติ', APPROVED: 'อนุมัติแล้ว', REJECTED: 'ปฏิเสธ', CANCELLED: 'ยกเลิก', COMPLETED: 'เสร็จสิ้น',

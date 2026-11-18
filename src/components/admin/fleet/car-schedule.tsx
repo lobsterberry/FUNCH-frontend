@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { adminRequest, type AdminCar } from "@/lib/admin-cars";
 import type { LocationItem } from "@/lib/rental";
-import { Dialog } from "../rental-dialog";
+import { Dialog } from "@/components/shared/dialog";
 
 type Rental = { id: string; bookingNumber: string; status: string; startDateTime: string; endDateTime: string;
   pickupLocation: LocationItem | null; dropoffLocation: LocationItem | null; turnaroundMinutes: number };

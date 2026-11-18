@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 import { currentMember, signIn } from "@/lib/account";
-import { AdminIcon } from "../layout/admin-icon";
+import { AdminIcon } from "./layout/admin-icon";
 
 export function AdminLogin() {
   const router = useRouter();

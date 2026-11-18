@@ -3,7 +3,7 @@
 import { useState, type FormEvent, type ReactNode } from "react";
 import type { Country } from "@/lib/rental";
 import type { FleetModel, FleetOffer } from "@/lib/fleet";
-import { Dialog } from "../rental-dialog";
+import { Dialog } from "@/components/shared/dialog";
 import { AutocompleteSelect } from "../autocomplete-select";
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
