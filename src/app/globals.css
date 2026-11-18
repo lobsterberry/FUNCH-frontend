@@ -1,5 +1,17 @@
 @import "tailwindcss";
 
+@media print {
+  @page { size: A4 landscape; margin: 12mm; }
+  body, main { background: white !important; }
+  body:has(.report-page) #admin-sidebar, body:has(.report-page) header:has([aria-label="เปิดเมนูหลังบ้าน"]), body:has(.report-page) a[href="#admin-content"] { display: none !important; }
+  body:has(.report-page) .lg\:pl-64 { padding-left: 0 !important; }
+  body:has(.report-page) #admin-content { max-width: none; padding: 0; }
+  .report-page { font-size: 10pt; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .report-page section, .report-page article { break-inside: avoid; box-shadow: none; }
+  .report-page .overflow-x-auto { overflow: visible; }
+  .report-page svg { min-width: 0; }
+}
+
 @font-face {
   font-family: Kanit;
   font-style: normal;
