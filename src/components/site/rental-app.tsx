@@ -12,9 +12,10 @@ import {
   type SearchCriteria,
 } from "@/lib/rental";
 import { HomeContent } from "./home-content";
-import { Header, Footer } from "./site-chrome";
+import { Header, Footer } from "./layout/site-header-footer";
 import { SearchResults } from "./search-results";
-import { CarDetails, Dialog } from "./rental-dialog";
+import { CarDetails } from "./rental-dialog";
+import { Dialog } from "@/components/shared/dialog";
 import { BookingDialog } from "./booking-dialog";
 import { currentMember, signOut, type Member } from "@/lib/account";
 import { SearchForm } from "./search-form";

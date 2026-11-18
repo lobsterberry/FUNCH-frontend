@@ -3,7 +3,7 @@
 import { useState, type FormEvent, type ReactNode } from "react";
 import { carCategories, featureOptions } from "@/lib/admin-cars";
 import type { FleetModel } from "@/lib/fleet";
-import { Dialog } from "../rental-dialog";
+import { Dialog } from "@/components/shared/dialog";
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return <label className="block text-xs font-medium text-slate-700">{label}<span className="mt-1 block">{children}</span></label>;

@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import { connection } from 'next/server';
-import { AdminReports } from '@/components/admin/admin-reports';
+import { AdminReports } from '@/components/admin/reports/admin-reports';
 
 export const metadata = { title: 'รายงานสรุปยอดจองรถ | FUNCH Admin' };
 

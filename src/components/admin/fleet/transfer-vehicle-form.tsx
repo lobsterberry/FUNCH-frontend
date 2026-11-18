@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from "react";
 import type { FleetOffer, FleetUnit, InventoryInput } from "@/lib/fleet";
 import { transferOffers } from "@/lib/fleet-view";
-import { Dialog } from "../rental-dialog";
+import { Dialog } from "@/components/shared/dialog";
 import { AutocompleteSelect } from "../autocomplete-select";
 
 export function TransferVehicleForm({ units, offers, initialUnitId, onClose, onSave }: {

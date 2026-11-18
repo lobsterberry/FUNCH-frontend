@@ -64,28 +64,6 @@ export function SearchForm({
   );
   return (
     <div className="rounded-2xl border border-slate-200/80 bg-white p-5 text-slate-800 shadow-2xl sm:p-6">
-      <div
-        aria-label="รูปแบบการเช่า"
-        className="mb-5 flex items-center gap-2 overflow-x-auto border-b border-slate-100 pb-4 text-sm sm:gap-4"
-      >
-        <span className="shrink-0 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 font-semibold text-blue-600">
-          🚘 เช่ารถขับเอง (Self-Drive)
-        </span>
-        <span
-          title="ยังไม่เปิดให้บริการ"
-          aria-disabled="true"
-          className="shrink-0 px-4 py-2 font-medium text-slate-400"
-        >
-          👨‍✈️ เช่าพร้อมคนขับ (Chauffeur)
-        </span>
-        <span
-          title="ยังไม่เปิดให้บริการ"
-          aria-disabled="true"
-          className="shrink-0 px-4 py-2 font-medium text-slate-400"
-        >
-          🏢 เช่าสำหรับนิติบุคคล
-        </span>
-      </div>
       <form onSubmit={submit} className="space-y-4">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
           <div className="search-field md:col-span-4">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { Dialog } from "./rental-dialog";
+import { Dialog } from "@/components/shared/dialog";
 import { api, ApiError, signIn, type Member } from "@/lib/account";
 import { bookingInstant } from "@/lib/booking-time";
 import { money, resolveLocation, type Car, type Country, type SearchCriteria } from "@/lib/rental";

@@ -1,5 +1,5 @@
 ﻿import { Suspense } from "react";
-import RentalApp from "@/components/rental-app";
+import RentalApp from "@/components/site/rental-app";
 
 export default function Home() {
   return (

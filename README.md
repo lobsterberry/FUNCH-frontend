@@ -91,7 +91,7 @@ Backend อยู่ใน repository `FUNCH-backend` ใช้การตั�
 
 ## Layout หลังบ้านที่ใช้ร่วมกัน
 
-`src/app/admin/(dashboard)/layout.tsx` ตรวจสิทธิ์และครอบหน้าด้วย `src/components/layout/admin-layout.tsx` ซึ่งเรียก `admin-sidebar.tsx` และ `admin-navbar.tsx` แยกกัน เพิ่มหน้าใหม่ใน route group `(dashboard)` เพื่อใช้ layout เดียวกัน; หน้า login อยู่ภายนอก group นี้
+`src/app/admin/(dashboard)/layout.tsx` ตรวจสิทธิ์และครอบหน้าด้วย `src/components/admin/layout/admin-layout.tsx` ซึ่งเรียก `admin-sidebar.tsx` และ `admin-navbar.tsx` แยกกัน เพิ่มหน้าใหม่ใน route group `(dashboard)` เพื่อใช้ layout เดียวกัน; หน้า login อยู่ภายนอก group นี้
 
 หน้าที่เพิ่มใหม่ควรเรียก `requireAdminPage()` ภายใน `Suspense` ก่อนส่งข้อมูลที่จำกัดสิทธิ์ และ API ทุกจุดต้องตรวจสิทธิ์ด้วย `requireAdmin` เพราะ Next.js อาจเก็บ layout ระหว่างการเปลี่ยนหน้า ดูหน้า `cars/page.tsx` เป็นตัวอย่าง
 

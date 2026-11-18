@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from 'react';
 import type { AdminMember, MemberInput } from '@/lib/admin-members';
-import { Dialog } from '../rental-dialog';
+import { Dialog } from '@/components/shared/dialog';
 
 export function MemberForm({ member, currentMemberId, onClose, onSave }: {
   member: AdminMember | null; currentMemberId: string; onClose: () => void;

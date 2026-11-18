@@ -1,6 +1,6 @@
 import { Suspense, type ReactNode } from "react";
 import { requireAdminPage } from "@/lib/admin-session";
-import { AdminLayout } from "@/components/layout/admin-layout";
+import { AdminLayout } from "@/components/admin/layout/admin-layout";
 
 async function ProtectedLayout({ children }: { children: ReactNode }) {
   const member = await requireAdminPage();

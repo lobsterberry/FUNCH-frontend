@@ -4,7 +4,7 @@ import { useState, type FormEvent } from "react";
 import type { FleetCatalogData, FleetUnit, InventoryMutation, VehicleStatus } from "@/lib/fleet";
 import { fleetStatusLabels } from "@/lib/fleet-view";
 import { money } from "@/lib/rental";
-import { Dialog } from "../rental-dialog";
+import { Dialog } from "@/components/shared/dialog";
 import { AutocompleteSelect } from "../autocomplete-select";
 
 export function CarForm({ car, catalog, initialOfferId, initialModelId, initialLocationId, onClose, onSave }: {
@@ -40,7 +40,7 @@ export function CarForm({ car, catalog, initialOfferId, initialModelId, initialL
     try { await onSave(bulk ? { ...common, licensePlates: plates } : { ...common, licensePlate: text("licensePlate"), vin: text("vin") || null }); }
     catch (cause) { setError((cause as Error).message); setBusy(false); }
   }
-  return <Dialog wide title={car ? `แก้ไขคันรถ · ${car.licensePlate}` : "เพิ่มคันรถจริง (ทะเบียน)"} onClose={() => { if (!busy) onClose(); }}>
+  return <Dialog wide title={car ? `แก้ไขคันรถ · ${car.licensePlate}` : "เพิ่มรถลงสาขา (ทะเบียน)"} onClose={() => { if (!busy) onClose(); }}>
     <form onSubmit={submit} className="space-y-5"><fieldset disabled={busy} className="space-y-5">
       <p className="text-xs text-slate-500">เลือกรุ่นและบริการรายสาขาเพื่อใช้สเปกและอัตราค่าเช่าร่วมกัน รถแต่ละคันมีทะเบียนและตารางจองของตนเอง</p>
       <div className="grid gap-4 sm:grid-cols-2">

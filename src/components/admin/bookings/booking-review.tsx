@@ -5,7 +5,7 @@ import { useState, type FormEvent, type ReactNode } from 'react';
 import { ApiError } from '@/lib/account';
 import { bookingBranch, bookingCarName, bookingColors, bookingDate, bookingLabels, bookingMoney,
   bookingSnapshot, type AdminBooking, type ReviewAction } from '@/lib/admin-bookings';
-import { Dialog } from '../rental-dialog';
+import { Dialog } from '@/components/shared/dialog';
 
 const actionLabels: Record<ReviewAction, string> = {
   APPROVED: 'อนุมัติการจอง', REJECTED: 'ปฏิเสธคำขอ', CANCELLED: 'ยกเลิกการจอง', COMPLETED: 'ยืนยันรับรถคืน',
