@@ -80,7 +80,9 @@ export function LocationAutocomplete({
         aria-autocomplete="list"
         aria-expanded={open}
         aria-controls={open ? listId : undefined}
-        aria-activedescendant={activeOption ? `${listId}-${activeIndex}` : undefined}
+        aria-activedescendant={
+          activeOption ? `${listId}-${activeIndex}` : undefined
+        }
         autoComplete="off"
         value={value}
         onChange={(event) => {

@@ -7,25 +7,252 @@ import { modelBranches } from "@/lib/fleet-view";
 import { FleetUnitTable, type UnitActions } from "./fleet-unit-table";
 import { AdminIcon } from "../layout/admin-icon";
 
-export function FleetModelView({ models, offers, units, countries, onModel, onOffer, onAdd, ...actions }: {
-  models: FleetModel[]; offers: FleetOffer[]; units: FleetUnit[]; countries: Country[];
-  onModel: (model: FleetModel) => void; onOffer: (modelId: string, offer?: FleetOffer, locationId?: string) => void;
-  onAdd: (context: { modelId: string; offerId?: string; locationId?: string }) => void;
+export function FleetModelView({
+  models,
+  offers,
+  units,
+  countries,
+  onModel,
+  onOffer,
+  onAdd,
+  ...actions
+}: {
+  models: FleetModel[];
+  offers: FleetOffer[];
+  units: FleetUnit[];
+  countries: Country[];
+  onModel: (model: FleetModel) => void;
+  onOffer: (modelId: string, offer?: FleetOffer, locationId?: string) => void;
+  onAdd: (context: {
+    modelId: string;
+    offerId?: string;
+    locationId?: string;
+  }) => void;
 } & UnitActions) {
-  return <div className="space-y-5">{models.map((model) => {
-    const branches = modelBranches(model.id, offers, units);
-    const modelUnits = units.filter((unit) => unit.carModelId === model.id);
-    return <article key={model.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:border-blue-300">
-      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-200 bg-linear-to-r from-slate-50 to-white p-5">
-        <div className="flex min-w-0 flex-1 items-start gap-3"><span className={`flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-xl border ${model.fuelType === "EV" ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-blue-200 bg-blue-100 text-blue-700"}`}><AdminIcon name="car" className="h-8 w-8" /><span className="mt-1 text-[9px] font-semibold">{model.categories[0]}</span></span><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h3 className="text-base font-semibold text-slate-900">{model.brand} {model.model}</h3>{model.isFeatured && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-800">Featured</span>}<span className={`rounded border px-1.5 py-0.5 text-[10px] ${model.steeringSide === "RHD" ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-amber-200 bg-amber-50 text-amber-700"}`}>{model.steeringSide === "RHD" ? "พวงมาลัยขวา" : "พวงมาลัยซ้าย"} ({model.steeringSide})</span><span className="rounded bg-blue-50 px-2 py-0.5 text-[10px] text-blue-700">{model.seats} ที่นั่ง</span><span className="rounded bg-emerald-50 px-2 py-0.5 text-[10px] text-emerald-700">{model.fuelType}</span></div><p className="mt-2 text-[11px] leading-5 text-slate-400">ปีโมเดล: <strong className="font-medium text-slate-600">{model.year}</strong> <span className="mx-1.5">•</span> กระเป๋า {model.luggageCapacity} ใบ <span className="mx-1.5">•</span> {model.transmission}{!!model.reviewCount && <><span className="mx-1.5">•</span> ★ {Number(model.rating).toFixed(1)} ({model.reviewCount} รีวิว)</>}</p><button onClick={() => onModel(model)} className="mt-1.5 text-[11px] font-medium text-blue-600 hover:underline">แก้ไขข้อมูลรุ่นรถ</button></div></div>
-        <div className="flex max-w-full flex-wrap items-center gap-4 rounded-xl border border-slate-200 bg-white p-3 text-center text-xs"><div><p className="text-[10px] text-slate-400">สาขาปัจจุบัน</p><p className="mt-1 font-semibold text-indigo-700">{new Set(branches.map((branch) => branch.locationId).filter(Boolean)).size} สาขา</p></div><div className="border-l border-slate-200 pl-4"><p className="text-[10px] text-slate-400">รถที่แสดง</p><p className="mt-1 font-semibold">{modelUnits.length} คัน</p></div><div className="border-l border-slate-200 pl-4"><p className="text-[10px] text-slate-400">พร้อมบริการ</p><p className="mt-1 font-semibold text-emerald-600">{modelUnits.filter((unit) => unit.fleetStatus === "AVAILABLE").length} คัน</p></div><div className="flex flex-wrap gap-2"><button onClick={() => onOffer(model.id)} className="rounded-lg border border-emerald-200 px-2 py-1.5 text-[11px] text-emerald-700 hover:bg-emerald-50">+ เพิ่มสาขา</button><button onClick={() => onAdd({ modelId: model.id })} className="rounded-lg border border-blue-200 px-2 py-1.5 text-[11px] text-blue-600 hover:bg-blue-50">+ เพิ่มรถ</button></div></div>
-      </div>
-      <div className="space-y-4 bg-slate-50/60 p-3 sm:p-5"><p className="flex items-center gap-2 text-[11px] font-medium text-slate-500"><AdminIcon name="location" className="h-4 w-4" />สาขาที่เปิดบริการและรถตามตำแหน่งปัจจุบัน</p>{branches.map((branch) => <section key={branch.key} aria-label={`${branch.name} · ${branch.provider}`} className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 p-4"><div className="flex items-start gap-2"><span className="text-xl">{countries.find((country) => country.code === branch.country)?.flag}</span><div><h4 className="text-sm font-medium text-slate-900">{branch.name}</h4><p className="mt-1 text-[10px] text-slate-400">{branch.provider} · {branch.offers[0]?.location.timeZone || "ตำแหน่งปัจจุบัน"}</p></div></div><span className="rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-700">{branch.units.length} คัน · พร้อม {branch.units.filter((unit) => unit.fleetStatus === "AVAILABLE").length}</span></div>
-        {branch.offers.map((offer) => <div key={offer.id} className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-2.5 text-[11px]"><p className="text-slate-500">อัตราเช่า: <strong className="font-medium text-slate-800">{money(Number(offer.hourlyRate))} / ชม.</strong><span className="mx-2 text-slate-300">|</span><strong className="text-blue-600">{money(Number(offer.dailyRate))} / วัน</strong><span className="ml-2 text-[10px]">{offer.isActive ? "เปิดรับจอง" : "ปิดรับจอง"} · เตรียมรถ {offer.turnaroundMinutes} นาที</span></p><div className="flex gap-3"><button onClick={() => onOffer(model.id, offer)} className="text-slate-500 hover:underline">แก้ไขราคา / บริการ</button><button onClick={() => onAdd({ modelId: model.id, locationId: branch.locationId || undefined, offerId: offer.id })} className="font-medium text-blue-600 hover:underline">+ เพิ่มคันเข้าสาขานี้</button></div></div>)}
-        {!branch.offers.length && <p className="px-4 py-3 text-xs text-amber-700">ยังไม่มีข้อเสนอในตำแหน่งนี้ <button onClick={() => onOffer(model.id, undefined, branch.locationId || undefined)} className="underline">เปิดบริการรายสาขา</button></p>}
-        <FleetUnitTable compact units={branch.units} {...actions} />
-      </section>)}{!branches.length && <p className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-xs text-slate-400">ยังไม่เปิดบริการในสาขา เริ่มด้วย “+ เพิ่มสาขา”</p>}</div>
-    </article>;
-  })}</div>;
+  return (
+    <div className="space-y-5">
+      {models.map((model) => {
+        const branches = modelBranches(model.id, offers, units);
+        const modelUnits = units.filter((unit) => unit.carModelId === model.id);
+        return (
+          <article
+            key={model.id}
+            className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:border-blue-300"
+          >
+            <div className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-200 bg-linear-to-r from-slate-50 to-white p-5">
+              <div className="flex min-w-0 flex-1 items-start gap-3">
+                <span
+                  className={`flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-xl border ${model.fuelType === "EV" ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-blue-200 bg-blue-100 text-blue-700"}`}
+                >
+                  <AdminIcon name="car" className="h-8 w-8" />
+                  <span className="mt-1 text-[9px] font-semibold">
+                    {model.categories[0]}
+                  </span>
+                </span>
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="text-base font-semibold text-slate-900">
+                      {model.brand} {model.model}
+                    </h3>
+                    {model.isFeatured && (
+                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-800">
+                        Featured
+                      </span>
+                    )}
+                    <span
+                      className={`rounded border px-1.5 py-0.5 text-[10px] ${model.steeringSide === "RHD" ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-amber-200 bg-amber-50 text-amber-700"}`}
+                    >
+                      {model.steeringSide === "RHD"
+                        ? "พวงมาลัยขวา"
+                        : "พวงมาลัยซ้าย"}{" "}
+                      ({model.steeringSide})
+                    </span>
+                    <span className="rounded bg-blue-50 px-2 py-0.5 text-[10px] text-blue-700">
+                      {model.seats} ที่นั่ง
+                    </span>
+                    <span className="rounded bg-emerald-50 px-2 py-0.5 text-[10px] text-emerald-700">
+                      {model.fuelType}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-[11px] leading-5 text-slate-400">
+                    ปีโมเดล:{" "}
+                    <strong className="font-medium text-slate-600">
+                      {model.year}
+                    </strong>{" "}
+                    <span className="mx-1.5">•</span> กระเป๋า{" "}
+                    {model.luggageCapacity} ใบ <span className="mx-1.5">•</span>{" "}
+                    {model.transmission}
+                    {!!model.reviewCount && (
+                      <>
+                        <span className="mx-1.5">•</span> ★{" "}
+                        {Number(model.rating).toFixed(1)} ({model.reviewCount}{" "}
+                        รีวิว)
+                      </>
+                    )}
+                  </p>
+                  <button
+                    onClick={() => onModel(model)}
+                    className="mt-1.5 text-[11px] font-medium text-blue-600 hover:underline"
+                  >
+                    แก้ไขข้อมูลรุ่นรถ
+                  </button>
+                </div>
+              </div>
+              <div className="flex max-w-full flex-wrap items-center gap-4 rounded-xl border border-slate-200 bg-white p-3 text-center text-xs">
+                <div>
+                  <p className="text-[10px] text-slate-400">สาขาปัจจุบัน</p>
+                  <p className="mt-1 font-semibold text-indigo-700">
+                    {
+                      new Set(
+                        branches
+                          .map((branch) => branch.locationId)
+                          .filter(Boolean),
+                      ).size
+                    }{" "}
+                    สาขา
+                  </p>
+                </div>
+                <div className="border-l border-slate-200 pl-4">
+                  <p className="text-[10px] text-slate-400">รถที่แสดง</p>
+                  <p className="mt-1 font-semibold">{modelUnits.length} คัน</p>
+                </div>
+                <div className="border-l border-slate-200 pl-4">
+                  <p className="text-[10px] text-slate-400">พร้อมบริการ</p>
+                  <p className="mt-1 font-semibold text-emerald-600">
+                    {
+                      modelUnits.filter(
+                        (unit) => unit.fleetStatus === "AVAILABLE",
+                      ).length
+                    }{" "}
+                    คัน
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => onOffer(model.id)}
+                    className="rounded-lg border border-emerald-200 px-2 py-1.5 text-[11px] text-emerald-700 hover:bg-emerald-50"
+                  >
+                    + เพิ่มสาขา
+                  </button>
+                  <button
+                    onClick={() => onAdd({ modelId: model.id })}
+                    className="rounded-lg border border-blue-200 px-2 py-1.5 text-[11px] text-blue-600 hover:bg-blue-50"
+                  >
+                    + เพิ่มรถ
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div className="space-y-4 bg-slate-50/60 p-3 sm:p-5">
+              <p className="flex items-center gap-2 text-[11px] font-medium text-slate-500">
+                <AdminIcon name="location" className="h-4 w-4" />
+                สาขาที่เปิดบริการและรถตามตำแหน่งปัจจุบัน
+              </p>
+              {branches.map((branch) => (
+                <section
+                  key={branch.key}
+                  aria-label={`${branch.name} · ${branch.provider}`}
+                  className="overflow-hidden rounded-xl border border-slate-200 bg-white"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 p-4">
+                    <div className="flex items-start gap-2">
+                      <span className="text-xl">
+                        {
+                          countries.find(
+                            (country) => country.code === branch.country,
+                          )?.flag
+                        }
+                      </span>
+                      <div>
+                        <h4 className="text-sm font-medium text-slate-900">
+                          {branch.name}
+                        </h4>
+                        <p className="mt-1 text-[10px] text-slate-400">
+                          {branch.provider} ·{" "}
+                          {branch.offers[0]?.location.timeZone ||
+                            "ตำแหน่งปัจจุบัน"}
+                        </p>
+                      </div>
+                    </div>
+                    <span className="rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-700">
+                      {branch.units.length} คัน · พร้อม{" "}
+                      {
+                        branch.units.filter(
+                          (unit) => unit.fleetStatus === "AVAILABLE",
+                        ).length
+                      }
+                    </span>
+                  </div>
+                  {branch.offers.map((offer) => (
+                    <div
+                      key={offer.id}
+                      className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-2.5 text-[11px]"
+                    >
+                      <p className="text-slate-500">
+                        อัตราเช่า:{" "}
+                        <strong className="font-medium text-slate-800">
+                          {money(Number(offer.hourlyRate))} / ชม.
+                        </strong>
+                        <span className="mx-2 text-slate-300">|</span>
+                        <strong className="text-blue-600">
+                          {money(Number(offer.dailyRate))} / วัน
+                        </strong>
+                        <span className="ml-2 text-[10px]">
+                          {offer.isActive ? "เปิดรับจอง" : "ปิดรับจอง"} ·
+                          เตรียมรถ {offer.turnaroundMinutes} นาที
+                        </span>
+                      </p>
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => onOffer(model.id, offer)}
+                          className="text-slate-500 hover:underline"
+                        >
+                          แก้ไขราคา / บริการ
+                        </button>
+                        <button
+                          onClick={() =>
+                            onAdd({
+                              modelId: model.id,
+                              locationId: branch.locationId || undefined,
+                              offerId: offer.id,
+                            })
+                          }
+                          className="font-medium text-blue-600 hover:underline"
+                        >
+                          + เพิ่มคันเข้าสาขานี้
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  {!branch.offers.length && (
+                    <p className="px-4 py-3 text-xs text-amber-700">
+                      ยังไม่มีข้อเสนอในตำแหน่งนี้{" "}
+                      <button
+                        onClick={() =>
+                          onOffer(
+                            model.id,
+                            undefined,
+                            branch.locationId || undefined,
+                          )
+                        }
+                        className="underline"
+                      >
+                        เปิดบริการรายสาขา
+                      </button>
+                    </p>
+                  )}
+                  <FleetUnitTable compact units={branch.units} {...actions} />
+                </section>
+              ))}
+              {!branches.length && (
+                <p className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-xs text-slate-400">
+                  ยังไม่เปิดบริการในสาขา เริ่มด้วย “+ เพิ่มสาขา”
+                </p>
+              )}
+            </div>
+          </article>
+        );
+      })}
+    </div>
+  );
 }

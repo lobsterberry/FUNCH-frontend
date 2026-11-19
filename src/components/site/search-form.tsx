@@ -29,8 +29,16 @@ export function SearchForm({
   const [error, setError] = useState("");
   const country = getCountry(criteria.country, countries);
   const locations = country.locations || [];
-  const pickup = resolveLocation(locations, criteria.locationId, criteria.location);
-  const dropoff = resolveLocation(locations, criteria.dropoffLocationId, criteria.return_location);
+  const pickup = resolveLocation(
+    locations,
+    criteria.locationId,
+    criteria.location,
+  );
+  const dropoff = resolveLocation(
+    locations,
+    criteria.dropoffLocationId,
+    criteria.return_location,
+  );
   const update = (key: keyof SearchCriteria, value: string) =>
     setCriteria((current) => ({ ...current, [key]: value }));
   const submit = (event: FormEvent<HTMLFormElement>) => {
@@ -48,13 +56,23 @@ export function SearchForm({
     }
     const params = new URLSearchParams();
     Object.entries(criteria).forEach(([key, value]) => {
-      if (value && (!["return_location", "dropoffLocationId"].includes(key) || differentReturn))
+      if (
+        value &&
+        (!["return_location", "dropoffLocationId"].includes(key) ||
+          differentReturn)
+      )
         params.set(key, value);
     });
-    if (!pickup || differentReturn && !dropoff) { setError("กรุณาเลือกสาขารับและคืนรถจากรายการ"); return; }
+    if (!pickup || (differentReturn && !dropoff)) {
+      setError("กรุณาเลือกสาขารับและคืนรถจากรายการ");
+      return;
+    }
     params.set("locationId", pickup.id);
     params.set("location", locationLabel(pickup));
-    if (differentReturn && dropoff) { params.set("dropoffLocationId", dropoff.id); params.set("return_location", locationLabel(dropoff)); }
+    if (differentReturn && dropoff) {
+      params.set("dropoffLocationId", dropoff.id);
+      params.set("return_location", locationLabel(dropoff));
+    }
     router.push(`/search?${params}`);
     onComplete?.();
   };
@@ -80,7 +98,12 @@ export function SearchForm({
                   ...current,
                   country: selected?.code ?? event.target.value,
                   location: selected?.location ?? current.location,
-                  locationId: resolveLocation(selected.locations || [], undefined, selected.location)?.id || "",
+                  locationId:
+                    resolveLocation(
+                      selected.locations || [],
+                      undefined,
+                      selected.location,
+                    )?.id || "",
                   dropoffLocationId: "",
                   return_location: "",
                 }));
@@ -105,15 +128,32 @@ export function SearchForm({
             <label htmlFor="search-location" className="field-label">
               📍 จุดรับรถและคืนรถ (Pick-up / Drop-off City)
             </label>
-            <select id="search-location" name="locationId" required value={pickup?.id || ""}
-              onChange={(event) => { const selected = locations.find((item) => item.id === event.target.value); setCriteria((current) => ({ ...current, locationId: selected?.id, location: selected ? locationLabel(selected) : "" })); }}
-              className="w-full bg-transparent py-2 text-sm font-medium">
-              <option value="">เลือกสาขารับรถ</option>{locations.map((location) => <option key={location.id} value={location.id}>{locationLabel(location)}</option>)}
+            <select
+              id="search-location"
+              name="locationId"
+              required
+              value={pickup?.id || ""}
+              onChange={(event) => {
+                const selected = locations.find(
+                  (item) => item.id === event.target.value,
+                );
+                setCriteria((current) => ({
+                  ...current,
+                  locationId: selected?.id,
+                  location: selected ? locationLabel(selected) : "",
+                }));
+              }}
+              className="w-full bg-transparent py-2 text-sm font-medium"
+            >
+              <option value="">เลือกสาขารับรถ</option>
+              {locations.map((location) => (
+                <option key={location.id} value={location.id}>
+                  {locationLabel(location)}
+                </option>
+              ))}
             </select>
             <div className="mt-1 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500">
-              <span>
-                ยอดนิยม: {country?.cities.join(", ") ?? ""}
-              </span>
+              <span>ยอดนิยม: {country?.cities.join(", ") ?? ""}</span>
               <label className="flex cursor-pointer items-center gap-1">
                 <input
                   type="checkbox"
@@ -126,9 +166,29 @@ export function SearchForm({
             {differentReturn && (
               <div className="mt-3 text-xs text-slate-600">
                 <label htmlFor="return-location">สถานที่คืนรถ</label>
-                <select id="return-location" name="dropoffLocationId" required value={dropoff?.id || ""}
-                  onChange={(event) => { const selected = locations.find((item) => item.id === event.target.value); setCriteria((current) => ({ ...current, dropoffLocationId: selected?.id, return_location: selected ? locationLabel(selected) : "" })); }} className="form-input mt-1">
-                  <option value="">เลือกสาขาคืนรถ</option>{locations.map((location) => <option key={location.id} value={location.id}>{locationLabel(location)}</option>)}
+                <select
+                  id="return-location"
+                  name="dropoffLocationId"
+                  required
+                  value={dropoff?.id || ""}
+                  onChange={(event) => {
+                    const selected = locations.find(
+                      (item) => item.id === event.target.value,
+                    );
+                    setCriteria((current) => ({
+                      ...current,
+                      dropoffLocationId: selected?.id,
+                      return_location: selected ? locationLabel(selected) : "",
+                    }));
+                  }}
+                  className="form-input mt-1"
+                >
+                  <option value="">เลือกสาขาคืนรถ</option>
+                  {locations.map((location) => (
+                    <option key={location.id} value={location.id}>
+                      {locationLabel(location)}
+                    </option>
+                  ))}
                 </select>
               </div>
             )}
@@ -222,7 +282,9 @@ export function SearchForm({
           <div className="flex w-full items-center gap-2 rounded-xl border border-blue-200/60 bg-blue-50/70 px-3 py-2 text-xs sm:w-auto">
             <span className="text-base">ℹ️</span>
             <div>
-              <strong className="text-blue-900">เกณฑ์คำนวณราคาอัตโนมัติ: </strong>
+              <strong className="text-blue-900">
+                เกณฑ์คำนวณราคาอัตโนมัติ:{" "}
+              </strong>
               <span className="text-slate-600">
                 เกิน 8 ชม. = คิด 1 วัน | คืนหลัง 14:00 น. = คิด 1 วันเต็ม
               </span>

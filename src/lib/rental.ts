@@ -77,14 +77,28 @@ export type SearchCriteria = {
 };
 
 export function locationLabel(location: LocationItem): string {
-  return `${location.cityTh || location.city} - ${location.nameTh || location.name}${location.airportCode ? ` (${location.airportCode} Airport)` : ''}`;
+  return `${location.cityTh || location.city} - ${location.nameTh || location.name}${location.airportCode ? ` (${location.airportCode} Airport)` : ""}`;
 }
 
 // Resolve old bookmarked URLs once; new searches always send a branch ID.
-export function resolveLocation(locations: LocationItem[], id?: string, label?: string) {
+export function resolveLocation(
+  locations: LocationItem[],
+  id?: string,
+  label?: string,
+) {
   if (id) return locations.find((location) => location.id === id);
-  return locations.find((location) => locationLabel(location) === label || location.name === label || location.nameTh === label)
-    ?? locations.find((location) => label?.includes(location.nameTh) || label?.includes(location.name));
+  return (
+    locations.find(
+      (location) =>
+        locationLabel(location) === label ||
+        location.name === label ||
+        location.nameTh === label,
+    ) ??
+    locations.find(
+      (location) =>
+        label?.includes(location.nameTh) || label?.includes(location.name),
+    )
+  );
 }
 const fallbackCountry: Country = {
   code: "JP",

@@ -103,7 +103,7 @@ export function SearchResults({
       ? "ทุกประเทศ"
       : filters.country === criteria.country
         ? criteria.location
-        : country?.location ?? criteria.location;
+        : (country?.location ?? criteria.location);
   const baseCars = cars.filter(
     (car) => filters.country === "all" || car.country === filters.country,
   );
@@ -111,14 +111,21 @@ export function SearchResults({
     new Set(baseCars.flatMap((car) => car.features).filter(Boolean)),
   );
   const activeFeatureOptions =
-    availableFeatures.length > 0 ? availableFeatures.slice(0, 8) : featureOptions;
+    availableFeatures.length > 0
+      ? availableFeatures.slice(0, 8)
+      : featureOptions;
   const update = <K extends keyof Filters>(key: K, value: Filters[K]) => {
     setFilters((current) => ({ ...current, [key]: value }));
     setPage(1);
   };
   const toggle = (
     key:
-      "cities" | "categories" | "transmission" | "seats" | "fuels" | "features",
+      | "cities"
+      | "categories"
+      | "transmission"
+      | "seats"
+      | "fuels"
+      | "features",
     value: string,
   ) => {
     setFilters((current) => ({
@@ -134,11 +141,16 @@ export function SearchResults({
       (car) =>
         (!filters.cities.length || filters.cities.includes(car.city)) &&
         (!filters.categories.length ||
-          filters.categories.includes(car.category) || car.categories?.some((category) => filters.categories.includes(category)) ||
+          filters.categories.includes(car.category) ||
+          car.categories?.some((category) =>
+            filters.categories.includes(category),
+          ) ||
           (filters.categories.includes("EV") && car.fuel === "EV")) &&
         (filters.steering === "all" || car.steering === filters.steering) &&
         (!filters.transmission.length ||
-          filters.transmission.includes(car.transmissionType === "MANUAL" ? "manual" : "automatic")) &&
+          filters.transmission.includes(
+            car.transmissionType === "MANUAL" ? "manual" : "automatic",
+          )) &&
         (!filters.seats.length ||
           filters.seats.some((seats) =>
             seats === "5"
@@ -164,7 +176,12 @@ export function SearchResults({
   const shown = filtered.slice((page - 1) * 4, page * 4);
   const checkbox = (
     key:
-      "cities" | "categories" | "transmission" | "seats" | "fuels" | "features",
+      | "cities"
+      | "categories"
+      | "transmission"
+      | "seats"
+      | "fuels"
+      | "features",
     id: string,
     label: string,
     count?: number,
@@ -236,10 +253,14 @@ export function SearchResults({
   ];
   const editCriteria = {
     ...criteria,
-    country: filters.country === "all" ? (countries[0]?.code ?? "JP") : filters.country,
+    country:
+      filters.country === "all"
+        ? (countries[0]?.code ?? "JP")
+        : filters.country,
     location:
       filters.country === "all"
-        ? (getCountry(countries[0]?.code ?? "JP", countries)?.location ?? location)
+        ? (getCountry(countries[0]?.code ?? "JP", countries)?.location ??
+          location)
         : location,
   };
   return (
@@ -252,7 +273,9 @@ export function SearchResults({
                 {filters.country === "all" ? "🌍" : (country?.flag ?? "🌍")}
               </span>
               <strong>
-                {filters.country === "all" ? "ทุกประเทศ" : `${country?.name ?? filters.country}:`}
+                {filters.country === "all"
+                  ? "ทุกประเทศ"
+                  : `${country?.name ?? filters.country}:`}
               </strong>
               <span>{filters.country !== "all" && location}</span>
             </div>
@@ -327,9 +350,18 @@ export function SearchResults({
                 value={filters.country}
                 onChange={(event) => {
                   const selected = getCountry(event.target.value, countries);
-                  onEdit({ ...criteria, country: selected.code, location: selected.location,
-                    locationId: resolveLocation(selected.locations || [], undefined, selected.location)?.id,
-                    return_location: undefined, dropoffLocationId: undefined });
+                  onEdit({
+                    ...criteria,
+                    country: selected.code,
+                    location: selected.location,
+                    locationId: resolveLocation(
+                      selected.locations || [],
+                      undefined,
+                      selected.location,
+                    )?.id,
+                    return_location: undefined,
+                    dropoffLocationId: undefined,
+                  });
                 }}
                 className="form-input bg-slate-50"
               >
@@ -476,7 +508,8 @@ export function SearchResults({
                   "features",
                   feature,
                   feature,
-                  baseCars.filter((car) => car.features.includes(feature)).length,
+                  baseCars.filter((car) => car.features.includes(feature))
+                    .length,
                 ),
               )}
             </FilterGroup>
@@ -506,7 +539,9 @@ export function SearchResults({
                   className="scroll-mt-24 text-sm font-bold text-slate-900"
                 >
                   พบรถทั้งหมด{" "}
-                  <span className="text-blue-600">{filtered.length} รายการ</span>{" "}
+                  <span className="text-blue-600">
+                    {filtered.length} รายการ
+                  </span>{" "}
                   <span className="text-xs font-normal text-slate-500">
                     • ข้อมูลรถตัวอย่าง
                   </span>
@@ -550,7 +585,9 @@ export function SearchResults({
                   {(["list", "grid"] as const).map((mode) => (
                     <button
                       key={mode}
-                      aria-label={mode === "list" ? "มุมมองรายการ" : "มุมมองการ์ด"}
+                      aria-label={
+                        mode === "list" ? "มุมมองรายการ" : "มุมมองการ์ด"
+                      }
                       aria-pressed={view === mode}
                       onClick={() => setView(mode)}
                       className={`rounded-md px-2 py-1 text-base ${view === mode ? "bg-white text-blue-600 shadow-xs" : "text-slate-400 hover:text-slate-600"}`}
@@ -644,7 +681,8 @@ export function SearchResults({
             >
               <p className="text-slate-500">
                 แสดง {filtered.length ? (page - 1) * 4 + 1 : 0} -{" "}
-                {Math.min(page * 4, filtered.length)} จาก {filtered.length} รายการ
+                {Math.min(page * 4, filtered.length)} จาก {filtered.length}{" "}
+                รายการ
               </p>
               <div className="flex items-center gap-1.5">
                 <button

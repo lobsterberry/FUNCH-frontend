@@ -6,7 +6,10 @@ export async function proxyBackend(request: NextRequest, path: string) {
   // Next's internal URL may use 0.0.0.0 inside Docker; Host is the browser-facing authority.
   const websiteOrigin = `${request.nextUrl.protocol}//${request.headers.get("host")}`;
   if (request.method !== "GET" && origin && origin !== websiteOrigin) {
-    return NextResponse.json({ success: false, message: "Origin not allowed" }, { status: 403 });
+    return NextResponse.json(
+      { success: false, message: "Origin not allowed" },
+      { status: 403 },
+    );
   }
   const backend = process.env.BACKEND_URL || "http://localhost:5000";
   const headers = new Headers();
@@ -23,7 +26,9 @@ export async function proxyBackend(request: NextRequest, path: string) {
       cache: "no-store",
       signal: AbortSignal.timeout(15_000),
     });
-    const response = new NextResponse(upstream.body, { status: upstream.status });
+    const response = new NextResponse(upstream.body, {
+      status: upstream.status,
+    });
     for (const name of ["content-type", "retry-after", "location"]) {
       const value = upstream.headers.get(name);
       if (value) response.headers.set(name, value);

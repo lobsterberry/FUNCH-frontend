@@ -141,9 +141,13 @@ export function CarCard({
   onDetails: (car: Car) => void;
   onBook: (car: Car) => void;
 }) {
-  const duration = car.quotedDays !== undefined ? {
-    label: `${car.quotedDays} วัน ${car.quotedHours || 0} ชั่วโมง`, lateReturn: criteria.return_time > "14:00",
-  } : rentalDuration(criteria);
+  const duration =
+    car.quotedDays !== undefined
+      ? {
+          label: `${car.quotedDays} วัน ${car.quotedHours || 0} ชั่วโมง`,
+          lateReturn: criteria.return_time > "14:00",
+        }
+      : rentalDuration(criteria);
   const total = car.quotedTotal ?? rentalTotal(car, criteria);
   if (list)
     return (
@@ -152,7 +156,14 @@ export function CarCard({
           <CarVisual car={car} compact />
           <p className="mt-2 text-center text-[11px] text-slate-400">
             ผู้ให้บริการ: {car.provider}
-            {car.availableCount !== undefined && <span className="mt-1 block text-emerald-700">{car.availabilityChecked ? "ว่างตามช่วงเวลาที่เลือก" : "รถเปิดบริการ"} {car.availableCount} คัน · {car.location?.nameTh}</span>}
+            {car.availableCount !== undefined && (
+              <span className="mt-1 block text-emerald-700">
+                {car.availabilityChecked
+                  ? "ว่างตามช่วงเวลาที่เลือก"
+                  : "รถเปิดบริการ"}{" "}
+                {car.availableCount} คัน · {car.location?.nameTh}
+              </span>
+            )}
           </p>
         </div>
         <div className="flex min-w-0 flex-1 flex-col justify-between">
@@ -254,7 +265,9 @@ export function CarCard({
               </span>
             </span>
             <span className="rounded bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-600">
-              {car.availableCount !== undefined ? `${car.availabilityChecked ? "ว่าง" : "เปิดบริการ"} ${car.availableCount} คัน` : "● พร้อมให้บริการ"}
+              {car.availableCount !== undefined
+                ? `${car.availabilityChecked ? "ว่าง" : "เปิดบริการ"} ${car.availableCount} คัน`
+                : "● พร้อมให้บริการ"}
             </span>
           </div>
           <h3 className="text-lg font-bold text-slate-900 transition group-hover:text-blue-600">

@@ -6,7 +6,12 @@ export type Member = {
 };
 
 export class ApiError extends Error {
-  constructor(message: string, public status: number) { super(message); }
+  constructor(
+    message: string,
+    public status: number,
+  ) {
+    super(message);
+  }
 }
 
 export async function api<T>(path: string, body?: unknown): Promise<T> {
@@ -20,7 +25,10 @@ export async function api<T>(path: string, body?: unknown): Promise<T> {
       body: body === undefined ? undefined : JSON.stringify(body),
     });
   } catch {
-    throw new ApiError("เชื่อมต่อระบบไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองอีกครั้ง", 0);
+    throw new ApiError(
+      "เชื่อมต่อระบบไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองอีกครั้ง",
+      0,
+    );
   }
   const data = await response.json().catch(() => null);
   if (!response.ok || data?.success === false) {
@@ -28,23 +36,33 @@ export async function api<T>(path: string, body?: unknown): Promise<T> {
       400: "ข้อมูลไม่ถูกต้อง กรุณาตรวจสอบแบบฟอร์ม",
       401: "กรุณาเข้าสู่ระบบอีกครั้ง แล้วกดยืนยันจอง",
       403: "ไม่สามารถทำรายการนี้ได้ กรุณาเข้าสู่ระบบอีกครั้ง",
-      409: path.includes("register") ? "อีเมลนี้มีบัญชีแล้ว กรุณาเข้าสู่ระบบ" : "ข้อมูลซ้ำ หรือรถไม่ว่างในช่วงเวลาที่เลือก กรุณาตรวจสอบอีกครั้ง",
+      409: path.includes("register")
+        ? "อีเมลนี้มีบัญชีแล้ว กรุณาเข้าสู่ระบบ"
+        : "ข้อมูลซ้ำ หรือรถไม่ว่างในช่วงเวลาที่เลือก กรุณาตรวจสอบอีกครั้ง",
       429: "ทำรายการบ่อยเกินไป กรุณารอสักครู่แล้วลองอีกครั้ง",
       502: "ไม่สามารถเชื่อมต่อระบบได้ กรุณาลองอีกครั้ง",
     };
     const specificMessages: Record<string, string> = {
-      "No car is available for these dates and locations": "รถรุ่นนี้เต็มในช่วงเวลาและสาขาที่เลือก กรุณาเปลี่ยนวันเวลาหรือค้นหาใหม่",
-      "This model cannot be returned at the selected location": "รถรุ่นนี้ยังไม่รองรับการคืนที่สาขาที่เลือก กรุณาเปลี่ยนสาขาคืนรถ",
-      "CAR_CHANGED": "ข้อมูลรถมีการเปลี่ยนแปลง กรุณาค้นหาใหม่",
-      "PRICE_CHANGED": "ราคาเปลี่ยนแปลงแล้ว กรุณาตรวจสอบราคาใหม่ก่อนยืนยันอีกครั้ง",
-      "A record with these details already exists": "อีเมลนี้มีบัญชีแล้ว กรุณาเข้าสู่ระบบ",
-      "Car is already booked for these dates": "รถคันนี้ถูกจองในช่วงเวลาที่เลือกแล้ว กรุณาเปลี่ยนวันเวลาหรือเลือกรถคันอื่น",
+      "No car is available for these dates and locations":
+        "รถรุ่นนี้เต็มในช่วงเวลาและสาขาที่เลือก กรุณาเปลี่ยนวันเวลาหรือค้นหาใหม่",
+      "This model cannot be returned at the selected location":
+        "รถรุ่นนี้ยังไม่รองรับการคืนที่สาขาที่เลือก กรุณาเปลี่ยนสาขาคืนรถ",
+      CAR_CHANGED: "ข้อมูลรถมีการเปลี่ยนแปลง กรุณาค้นหาใหม่",
+      PRICE_CHANGED:
+        "ราคาเปลี่ยนแปลงแล้ว กรุณาตรวจสอบราคาใหม่ก่อนยืนยันอีกครั้ง",
+      "A record with these details already exists":
+        "อีเมลนี้มีบัญชีแล้ว กรุณาเข้าสู่ระบบ",
+      "Car is already booked for these dates":
+        "รถคันนี้ถูกจองในช่วงเวลาที่เลือกแล้ว กรุณาเปลี่ยนวันเวลาหรือเลือกรถคันอื่น",
       "Car is unavailable": "รถคันนี้ไม่เปิดให้จองแล้ว กรุณาเลือกรถคันอื่น",
-      "Car details changed; please refresh and try again": "ข้อมูลหรือสถานะรถมีการเปลี่ยนแปลง กรุณาโหลดข้อมูลใหม่แล้วลองอีกครั้ง",
+      "Car details changed; please refresh and try again":
+        "ข้อมูลหรือสถานะรถมีการเปลี่ยนแปลง กรุณาโหลดข้อมูลใหม่แล้วลองอีกครั้ง",
       "Pickup must be in the future": "กรุณาเลือกวันและเวลารับรถในอนาคต",
     };
-    const message = specificMessages[data?.message]
-      || messages[response.status] || "ทำรายการไม่สำเร็จ กรุณาลองอีกครั้ง";
+    const message =
+      specificMessages[data?.message] ||
+      messages[response.status] ||
+      "ทำรายการไม่สำเร็จ กรุณาลองอีกครั้ง";
     throw new ApiError(message, response.status);
   }
   return data as T;
@@ -57,11 +75,20 @@ export async function currentMember(): Promise<Member | null> {
 
 async function authAction(action: "login" | "logout", credentials = {}) {
   const { csrfToken } = await api<{ csrfToken: string }>("/api/auth/csrf");
-  const result = await api<{ url: string }>(`/api/auth/${action}`, { ...credentials, csrfToken });
-  const error = new URL(result.url, window.location.origin).searchParams.get("error");
-  if (error) throw new ApiError(error === "CredentialsSignin"
-    ? "อีเมลหรือรหัสผ่านไม่ถูกต้อง"
-    : "ยืนยันการเข้าสู่ระบบไม่สำเร็จ กรุณาลองอีกครั้ง", 401);
+  const result = await api<{ url: string }>(`/api/auth/${action}`, {
+    ...credentials,
+    csrfToken,
+  });
+  const error = new URL(result.url, window.location.origin).searchParams.get(
+    "error",
+  );
+  if (error)
+    throw new ApiError(
+      error === "CredentialsSignin"
+        ? "อีเมลหรือรหัสผ่านไม่ถูกต้อง"
+        : "ยืนยันการเข้าสู่ระบบไม่สำเร็จ กรุณาลองอีกครั้ง",
+      401,
+    );
 }
 
 export async function signIn(email: string, password: string, scope?: "admin") {

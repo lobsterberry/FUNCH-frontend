@@ -39,4 +39,3 @@ export function CarDetails({
     </Dialog>
   );
 }
-
