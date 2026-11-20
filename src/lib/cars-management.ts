@@ -65,7 +65,7 @@ export async function adminRequest<T>(path: string, method = "GET", body?: unkno
   const data = await response.json().catch(() => null);
   if (!response.ok || !data?.success) {
     const specific: Record<string, string> = {
-      "FLEET_BOOKED": "รถมีรายการจองค้าง กรุณาจัดการตารางรถก่อนเปลี่ยนรุ่น ย้ายสาขา ปิดบริการ หรือส่งซ่อม",
+      "HAS_ACTIVE_BOOKINGS": "รถมีรายการจองค้าง กรุณาจัดการตารางรถก่อนเปลี่ยนรุ่น ย้ายสาขา ปิดบริการ หรือส่งซ่อม",
       "INVALID_TRANSFER": "ปลายทางต้องเปิดบริการสำหรับรุ่นและผู้ให้บริการเดียวกัน ภายในประเทศเดียวกัน",
       "OFFER_IDENTITY": "กรุณาสร้างข้อเสนอใหม่เมื่อต้องการเปลี่ยนรุ่น สาขา หรือผู้ให้บริการ",
       "SCHEDULE_CONFLICT": "การเปลี่ยนแปลงกระทบตารางรถหรือสถานที่รับรถของรายการจองอื่น",

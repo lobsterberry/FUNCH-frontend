@@ -1,16 +1,16 @@
 "use client";
 
-import type { FleetStatus, FleetUnit } from "@/lib/fleet";
-import { fleetStatusLabels } from "@/lib/fleet-view";
+import type { InventoryStatus, CarUnit } from "@/lib/cars";
+import { inventoryStatusLabels } from "@/lib/cars-view";
 import { money } from "@/lib/rental";
 
 export type UnitActions = {
-  onEdit: (unit: FleetUnit) => void;
-  onHistory: (unit: FleetUnit) => void;
-  onTransfer: (unit: FleetUnit) => void;
-  onStatus: (unit: FleetUnit) => void;
+  onEdit: (unit: CarUnit) => void;
+  onHistory: (unit: CarUnit) => void;
+  onTransfer: (unit: CarUnit) => void;
+  onStatus: (unit: CarUnit) => void;
 };
-const statusColors: Record<FleetStatus, string> = {
+const statusColors: Record<InventoryStatus, string> = {
   AVAILABLE: "border-emerald-200 bg-emerald-50 text-emerald-700",
   IN_USE: "border-blue-200 bg-blue-50 text-blue-700",
   RESERVED: "border-indigo-200 bg-indigo-50 text-indigo-700",
@@ -20,25 +20,25 @@ const statusColors: Record<FleetStatus, string> = {
   INACTIVE: "border-slate-200 bg-slate-100 text-slate-600",
   UNASSIGNED: "border-slate-200 bg-slate-100 text-slate-600",
 };
-export function UnitStatus({ unit }: { unit: FleetUnit }) {
+export function UnitStatus({ unit }: { unit: CarUnit }) {
   return (
     <span
-      className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-1 text-[10px] font-medium ${statusColors[unit.fleetStatus]}`}
+      className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-1 text-[10px] font-medium ${statusColors[unit.inventoryStatus]}`}
     >
       <span
         aria-hidden="true"
         className="h-1.5 w-1.5 rounded-full bg-current"
       />
-      {fleetStatusLabels[unit.fleetStatus]}
+      {inventoryStatusLabels[unit.inventoryStatus]}
     </span>
   );
 }
 
-export function FleetUnitTable({
+export function CarsUnitTable({
   units,
   compact = false,
   ...actions
-}: { units: FleetUnit[]; compact?: boolean } & UnitActions) {
+}: { units: CarUnit[]; compact?: boolean } & UnitActions) {
   return (
     <div className="custom-scroll overflow-x-auto">
       <table
@@ -88,7 +88,7 @@ export function FleetUnitTable({
           {units.map((unit) => (
             <tr
               key={unit.id}
-              className={`${unit.fleetStatus === "MAINTENANCE" ? "bg-red-50/30" : "hover:bg-slate-50/70"}`}
+              className={`${unit.inventoryStatus === "MAINTENANCE" ? "bg-red-50/30" : "hover:bg-slate-50/70"}`}
             >
               <td className="px-3 py-3.5">
                 <p className="whitespace-nowrap font-mono font-semibold text-slate-900">
@@ -153,7 +153,7 @@ export function FleetUnitTable({
                 <UnitStatus unit={unit} />
                 {unit.hasBookings &&
                   ["MAINTENANCE", "INACTIVE", "CLEANING"].includes(
-                    unit.fleetStatus,
+                    unit.inventoryStatus,
                   ) && (
                     <p className="mt-1 text-[10px] text-blue-600">
                       มีรายการจองค้าง

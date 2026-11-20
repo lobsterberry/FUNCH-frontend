@@ -1,12 +1,12 @@
 import type {
-  FleetCatalogData,
-  FleetModel,
-  FleetOffer,
-  FleetStatus,
-  FleetUnit,
-} from "./fleet.ts";
+  CarsCatalogData,
+  CarModel,
+  CarOffer,
+  InventoryStatus,
+  CarUnit,
+} from "./cars.ts";
 
-export type FleetFilters = {
+export type CarsFilters = {
   search: string;
   country: string;
   location: string;
@@ -14,7 +14,7 @@ export type FleetFilters = {
   status: string;
   model: string;
 };
-export const emptyFleetFilters: FleetFilters = {
+export const emptyCarsFilters: CarsFilters = {
   search: "",
   country: "all",
   location: "all",
@@ -22,7 +22,7 @@ export const emptyFleetFilters: FleetFilters = {
   status: "all",
   model: "all",
 };
-export const fleetStatusLabels: Record<FleetStatus, string> = {
+export const inventoryStatusLabels: Record<InventoryStatus, string> = {
   AVAILABLE: "พร้อมบริการ",
   IN_USE: "กำลังเช่า",
   RESERVED: "จองแล้ว",
@@ -36,13 +36,13 @@ const matches = (term: string, values: unknown[]) =>
   !term || values.join(" ").toLocaleLowerCase().includes(term);
 
 // Filter the common data once so every view and export sees the same physical units.
-export function fleetResults(data: FleetCatalogData, filters: FleetFilters) {
+export function carsResults(data: CarsCatalogData, filters: CarsFilters) {
   const term = filters.search.trim().toLocaleLowerCase();
   const offersById = new Map(data.offers.map((offer) => [offer.id, offer]));
-  const modelMatches = (model: FleetModel) =>
+  const modelMatches = (model: CarModel) =>
     (filters.category === "all" ||
       model.categories.includes(
-        filters.category as FleetModel["categories"][number],
+        filters.category as CarModel["categories"][number],
       )) &&
     (filters.model === "all" || model.id === filters.model);
   const units = data.units.filter((unit) => {
@@ -52,10 +52,10 @@ export function fleetResults(data: FleetCatalogData, filters: FleetFilters) {
       (filters.location === "all" || unit.locationId === filters.location) &&
       (filters.category === "all" ||
         unit.categories.includes(
-          filters.category as FleetModel["categories"][number],
+          filters.category as CarModel["categories"][number],
         )) &&
       (filters.model === "all" || unit.carModelId === filters.model) &&
-      (filters.status === "all" || unit.fleetStatus === filters.status) &&
+      (filters.status === "all" || unit.inventoryStatus === filters.status) &&
       matches(term, [
         unit.name,
         unit.licensePlate,
@@ -107,8 +107,8 @@ export function fleetResults(data: FleetCatalogData, filters: FleetFilters) {
 
 export function modelBranches(
   modelId: string,
-  offers: FleetOffer[],
-  units: FleetUnit[],
+  offers: CarOffer[],
+  units: CarUnit[],
 ) {
   type Branch = {
     key: string;
@@ -116,8 +116,8 @@ export function modelBranches(
     name: string;
     country: string;
     provider: string;
-    offers: FleetOffer[];
-    units: FleetUnit[];
+    offers: CarOffer[];
+    units: CarUnit[];
   };
   const branches = new Map<string, Branch>();
   const key = (location: string | null | undefined, provider: string) =>
@@ -153,7 +153,7 @@ export function modelBranches(
   return [...branches.values()];
 }
 
-export function transferOffers(unit: FleetUnit, offers: FleetOffer[]) {
+export function transferOffers(unit: CarUnit, offers: CarOffer[]) {
   return offers.filter(
     (offer) =>
       offer.isActive &&
@@ -164,7 +164,7 @@ export function transferOffers(unit: FleetUnit, offers: FleetOffer[]) {
   );
 }
 
-export function fleetCsv(units: FleetUnit[]) {
+export function carsCsv(units: CarUnit[]) {
   const cell = (value: unknown) => {
     const text = String(value ?? "");
     return `"${(/^[\s]*[=+@-]/.test(text) ? "'" + text : text).replaceAll('"', '""')}"`;
@@ -198,7 +198,7 @@ export function fleetCsv(units: FleetUnit[]) {
         unit.vin,
         unit.hour,
         unit.day,
-        fleetStatusLabels[unit.fleetStatus],
+        inventoryStatusLabels[unit.inventoryStatus],
       ]),
     ]
       .map((row) => row.map(cell).join(","))

@@ -62,7 +62,7 @@ export function AdminNavbar({
                   ? "Member Management"
                   : bookingsPage
                     ? "Booking Approval System"
-                    : "Multi-Location Fleet"}
+                    : "Cars Across Locations"}
             </span>
           </p>
         </div>

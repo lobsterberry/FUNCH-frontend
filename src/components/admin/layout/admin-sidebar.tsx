@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { Member } from "@/lib/account";
 import { AdminIcon } from "./admin-icon";
-import { useAdminFleet } from "./admin-fleet-context";
+import { useCarsManagement } from "./cars-management-context";
 
 export function AdminSidebar({
   member,
@@ -16,7 +16,7 @@ export function AdminSidebar({
   onClose: () => void;
 }) {
   const pathname = usePathname();
-  const { network } = useAdminFleet();
+  const { network } = useCarsManagement();
   return (
     <>
       {open && (
@@ -47,7 +47,7 @@ export function AdminSidebar({
                 </span>
               </span>
               <span className="mt-1 block text-[10px] text-slate-400">
-                Fleet & Location Management
+                Car & Location Management
               </span>
             </span>
           </Link>
@@ -64,7 +64,7 @@ export function AdminSidebar({
           <p className="mt-1 text-xs font-medium text-emerald-400">
             {network
               ? `${network.summary.locations} สาขาใน ${network.summary.countries} ประเทศ`
-              : "FUNCH Global Fleet"}
+              : "FUNCH Car Network"}
           </p>
           {network && (
             <div className="mt-2 flex flex-wrap gap-2 text-lg">

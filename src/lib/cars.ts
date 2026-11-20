@@ -1,7 +1,7 @@
-import type { AdminCar, CarCategory } from "./admin-cars";
+import type { AdminCar, CarCategory } from "./cars-management";
 import type { LocationItem } from "./rental";
 
-export type FleetModel = {
+export type CarModel = {
   id: string;
   brand: string;
   model: string;
@@ -24,7 +24,7 @@ export type FleetModel = {
   totalCars?: number;
   locationCount?: number;
 };
-export type FleetOffer = {
+export type CarOffer = {
   id: string;
   carModelId: string;
   locationId: string;
@@ -33,7 +33,7 @@ export type FleetOffer = {
   dailyRate: string | number;
   isActive: boolean;
   turnaroundMinutes: number;
-  carModel: FleetModel;
+  carModel: CarModel;
   location: LocationItem & { countryCode: string };
   _count: { cars: number };
   inventoryCount?: number;
@@ -43,15 +43,15 @@ export type VehicleStatus =
   | "CLEANING"
   | "MAINTENANCE"
   | "INACTIVE";
-export type FleetStatus =
+export type InventoryStatus =
   | VehicleStatus
   | "IN_USE"
   | "RESERVED"
   | "OVERDUE"
   | "UNASSIGNED";
-export type FleetUnit = AdminCar & {
+export type CarUnit = AdminCar & {
   operationalStatus: VehicleStatus;
-  fleetStatus: FleetStatus;
+  inventoryStatus: InventoryStatus;
   hasBookings: boolean;
   overdue: boolean;
   homeLocationId: string | null;
@@ -60,7 +60,7 @@ export type FleetUnit = AdminCar & {
   vin: string | null;
   availableFrom: string | null;
 };
-export type FleetSummary = {
+export type CarsSummary = {
   models: number;
   locations: number;
   countries: number;
@@ -69,11 +69,11 @@ export type FleetSummary = {
   inUse: number;
   maintenance: number;
 };
-export type FleetCatalogData = {
-  models: FleetModel[];
-  offers: FleetOffer[];
-  units: FleetUnit[];
-  summary: FleetSummary;
+export type CarsCatalogData = {
+  models: CarModel[];
+  offers: CarOffer[];
+  units: CarUnit[];
+  summary: CarsSummary;
   generatedAt: string;
   locationInventory: {
     locationId: string;
@@ -97,5 +97,5 @@ export type InventoryInput = InventoryDetails & {
 };
 export type BulkInventoryInput = InventoryDetails & { licensePlates: string[] };
 export type InventoryMutation = InventoryInput | BulkInventoryInput;
-export const offerLabel = (offer: FleetOffer) =>
+export const offerLabel = (offer: CarOffer) =>
   `${offer.carModel.brand} ${offer.carModel.model} ${offer.carModel.year} · ${offer.location.nameTh || offer.location.name} · ${offer.providerName}`;

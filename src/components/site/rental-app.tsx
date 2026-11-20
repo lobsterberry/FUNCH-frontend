@@ -110,7 +110,7 @@ export default function RentalApp({ mode }: { mode: "home" | "search" }) {
         if (mode === "search") {
           const url = new URLSearchParams(searchKey);
           const selectedCountry = getCountry(
-            url.get("country") || "JP",
+            url.get("country") || "TH",
             countries,
           );
           const locations = selectedCountry.locations || [];
@@ -146,7 +146,7 @@ export default function RentalApp({ mode }: { mode: "home" | "search" }) {
           query.set("startDateTime", start);
           query.set("endDateTime", end);
         }
-        const response = await fetch(`/api/fleet/search?${query}`, {
+        const response = await fetch(`/api/cars/search?${query}`, {
           cache: "no-store",
           signal: controller.signal,
         });
@@ -168,7 +168,7 @@ export default function RentalApp({ mode }: { mode: "home" | "search" }) {
   const country =
     rawCountry === "all" || countries.some((item) => item.code === rawCountry)
       ? rawCountry!
-      : (countries[0]?.code ?? "JP");
+      : (countries[0]?.code ?? "TH");
   const defaultLoc =
     getCountry(country, countries)?.location ?? defaultCriteria.location;
   const selectedLocations = getCountry(country, countries).locations || [];

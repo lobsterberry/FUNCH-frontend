@@ -13,7 +13,7 @@ import {
   bookingSnapshot,
   type AdminBooking,
   type ReviewAction,
-} from "@/lib/admin-bookings";
+} from "@/lib/bookings-management";
 import { Dialog } from "@/components/shared/dialog";
 
 const actionLabels: Record<ReviewAction, string> = {

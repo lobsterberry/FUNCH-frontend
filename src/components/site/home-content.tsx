@@ -107,7 +107,7 @@ export function HomeContent({
         <div className="mb-8 flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
           <div>
             <p className="mb-1 text-xs font-semibold tracking-wider text-blue-600">
-              ⭐ TOP RATED FLEET
+              ⭐ TOP RATED CARS
             </p>
             <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">
               รถแนะนำยอดนิยมสำหรับคุณ

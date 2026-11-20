@@ -2,16 +2,16 @@
 
 import type { KeyboardEvent } from "react";
 import type { Country } from "@/lib/rental";
-import { carCategories } from "@/lib/admin-cars";
+import { carCategories } from "@/lib/cars-management";
 import {
-  fleetStatusLabels,
-  type FleetFilters as Filters,
-} from "@/lib/fleet-view";
+  inventoryStatusLabels,
+  type CarsFilters as Filters,
+} from "@/lib/cars-view";
 import { AdminIcon } from "../layout/admin-icon";
 import { AutocompleteSelect } from "../autocomplete-select";
 
-export type FleetView = "model" | "location" | "fleet";
-export function FleetFilters({
+export type CarsView = "model" | "location" | "inventory";
+export function CarsFilters({
   filters,
   countries,
   view,
@@ -21,15 +21,15 @@ export function FleetFilters({
 }: {
   filters: Filters;
   countries: Country[];
-  view: FleetView;
-  counts: Record<FleetView, number>;
+  view: CarsView;
+  counts: Record<CarsView, number>;
   onChange: (change: Partial<Filters>) => void;
-  onView: (view: FleetView) => void;
+  onView: (view: CarsView) => void;
 }) {
   const tabs = [
     { id: "model", label: "ตามรุ่นรถ", icon: "models" },
     { id: "location", label: "ตามสาขา", icon: "location" },
-    { id: "fleet", label: "ทะเบียนรถทั้งหมด", icon: "menu" },
+    { id: "inventory", label: "ทะเบียนรถทั้งหมด", icon: "menu" },
   ] as const;
   function keydown(event: KeyboardEvent<HTMLButtonElement>, index: number) {
     const next =
@@ -45,7 +45,7 @@ export function FleetFilters({
     if (next === null) return;
     event.preventDefault();
     onView(tabs[next].id);
-    document.getElementById(`fleet-tab-${tabs[next].id}`)?.focus();
+    document.getElementById(`cars-tab-${tabs[next].id}`)?.focus();
   }
   return (
     <section
@@ -61,10 +61,10 @@ export function FleetFilters({
           {tabs.map((tab, index) => (
             <button
               key={tab.id}
-              id={`fleet-tab-${tab.id}`}
+              id={`cars-tab-${tab.id}`}
               role="tab"
               aria-selected={view === tab.id}
-              aria-controls={`fleet-panel-${tab.id}`}
+              aria-controls={`cars-panel-${tab.id}`}
               tabIndex={view === tab.id ? 0 : -1}
               onKeyDown={(event) => keydown(event, index)}
               onClick={() => onView(tab.id)}
@@ -158,7 +158,7 @@ export function FleetFilters({
             className="form-input mt-1"
           >
             <option value="all">ทุกสถานะ</option>
-            {Object.entries(fleetStatusLabels).map(([key, label]) => (
+            {Object.entries(inventoryStatusLabels).map(([key, label]) => (
               <option key={key} value={key}>
                 {label}
               </option>

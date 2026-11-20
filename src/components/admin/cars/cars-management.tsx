@@ -10,55 +10,55 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Country } from "@/lib/rental";
 import { ApiError } from "@/lib/account";
-import { adminRequest } from "@/lib/admin-cars";
+import { adminRequest } from "@/lib/cars-management";
 import type {
-  FleetCatalogData,
-  FleetModel,
-  FleetOffer,
-  FleetUnit,
+  CarsCatalogData,
+  CarModel,
+  CarOffer,
+  CarUnit,
   InventoryInput,
   InventoryMutation,
   VehicleStatus,
-} from "@/lib/fleet";
+} from "@/lib/cars";
 import {
-  emptyFleetFilters,
-  fleetCsv,
-  fleetResults,
-  fleetStatusLabels,
-  type FleetFilters as Filters,
-} from "@/lib/fleet-view";
+  emptyCarsFilters,
+  carsCsv,
+  carsResults,
+  inventoryStatusLabels,
+  type CarsFilters as Filters,
+} from "@/lib/cars-view";
 import { CarForm } from "./car-form";
 import { CarSchedule } from "./car-schedule";
 import { ModelForm } from "./model-form";
 import { OfferForm } from "./offer-form";
 import { TransferVehicleForm } from "./transfer-vehicle-form";
-import { FleetOverview } from "./fleet-overview";
-import { FleetFilters, type FleetView } from "./fleet-filters";
-import { FleetModelView } from "./fleet-model-view";
-import { FleetLocationView } from "./fleet-location-view";
-import { FleetUnitTable } from "./fleet-unit-table";
+import { CarsOverview } from "./cars-overview";
+import { CarsFilters, type CarsView } from "./cars-filters";
+import { CarsModelView } from "./cars-model-view";
+import { CarsLocationView } from "./cars-location-view";
+import { CarsUnitTable } from "./cars-unit-table";
 import { AdminIcon } from "../layout/admin-icon";
 import { Dialog } from "@/components/shared/dialog";
-import { useAdminFleet } from "../layout/admin-fleet-context";
+import { useCarsManagement } from "../layout/cars-management-context";
 
 type Modal =
-  | { kind: "model"; item: FleetModel | null }
+  | { kind: "model"; item: CarModel | null }
   | {
       kind: "offer";
-      item: FleetOffer | null;
+      item: CarOffer | null;
       modelId?: string;
       locationId?: string;
     }
   | {
       kind: "car";
-      item: FleetUnit | null;
+      item: CarUnit | null;
       modelId?: string;
       locationId?: string;
       offerId?: string;
     }
   | { kind: "transfer"; unitId?: string }
-  | { kind: "history" | "status"; unit: FleetUnit };
-const emptyCatalog: FleetCatalogData = {
+  | { kind: "history" | "status"; unit: CarUnit };
+const emptyCatalog: CarsCatalogData = {
   models: [],
   offers: [],
   units: [],
@@ -80,7 +80,7 @@ function StatusForm({
   onClose,
   onSave,
 }: {
-  unit: FleetUnit;
+  unit: CarUnit;
   onClose: () => void;
   onSave: (input: InventoryInput) => Promise<void>;
 }) {
@@ -129,7 +129,7 @@ function StatusForm({
               ["AVAILABLE", "CLEANING", "MAINTENANCE", "INACTIVE"] as const
             ).map((status) => (
               <option key={status} value={status}>
-                {fleetStatusLabels[status]}
+                {inventoryStatusLabels[status]}
               </option>
             ))}
           </select>
@@ -162,11 +162,11 @@ function StatusForm({
   );
 }
 
-export function AdminCars() {
+export function CarsManagement() {
   const router = useRouter();
-  const { setNetwork } = useAdminFleet();
+  const { setNetwork } = useCarsManagement();
   const params = useSearchParams();
-  const [data, setData] = useState<FleetCatalogData>(emptyCatalog);
+  const [data, setData] = useState<CarsCatalogData>(emptyCatalog);
   const [countries, setCountries] = useState<Country[]>([]);
   const [loading, setLoading] = useState(true);
   const [loaded, setLoaded] = useState(false);
@@ -175,19 +175,19 @@ export function AdminCars() {
   const [modal, setModal] = useState<Modal | null>(null);
   const requestId = useRef(0);
   const filters = Object.fromEntries(
-    Object.entries(emptyFleetFilters).map(([key, value]) => [
+    Object.entries(emptyCarsFilters).map(([key, value]) => [
       key,
       params.get(key) || value,
     ]),
   ) as Filters;
-  const view: FleetView =
+  const view: CarsView =
     params.get("view") === "location"
       ? "location"
-      : params.get("view") === "fleet"
-        ? "fleet"
+      : params.get("view") === "inventory"
+        ? "inventory"
         : "model";
   const pageSize = view === "model" ? 5 : view === "location" ? 6 : 10;
-  const results = fleetResults(data, filters);
+  const results = carsResults(data, filters);
   const noLocationFilter =
     !filters.search &&
     filters.category === "all" &&
@@ -214,7 +214,7 @@ export function AdminCars() {
   const counts = {
     model: results.models.length,
     location: allLocations.length,
-    fleet: results.units.length,
+    inventory: results.units.length,
   };
   const count = counts[view];
   const totalPages = Math.max(1, Math.ceil(count / pageSize));
@@ -243,7 +243,7 @@ export function AdminCars() {
     setLoading(true);
     try {
       const [catalog, countryList] = await Promise.all([
-        adminRequest<{ data: FleetCatalogData }>("/api/fleet/catalog"),
+        adminRequest<{ data: CarsCatalogData }>("/api/cars/catalog"),
         adminRequest<{ data: Country[] }>("/api/countries"),
       ]);
       if (id !== requestId.current) return;
@@ -306,30 +306,30 @@ export function AdminCars() {
     const item = modal?.kind === "car" ? modal.item : null;
     await mutate(
       item
-        ? `/api/fleet/cars/${encodeURIComponent(item.id)}`
+        ? `/api/cars/${encodeURIComponent(item.id)}`
         : "licensePlates" in body
-          ? "/api/fleet/cars/bulk"
-          : "/api/fleet/cars",
+          ? "/api/cars/bulk"
+          : "/api/cars",
       item ? "PATCH" : "POST",
       body,
     );
   }
   function exportCsv() {
     const url = URL.createObjectURL(
-      new Blob([fleetCsv(results.units)], { type: "text/csv;charset=utf-8" }),
+      new Blob([carsCsv(results.units)], { type: "text/csv;charset=utf-8" }),
     );
     const link = document.createElement("a");
     link.href = url;
-    link.download = "funch-fleet.csv";
+    link.download = "funch-cars.csv";
     link.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
   const actions = {
-    onEdit: (unit: FleetUnit) => setModal({ kind: "car", item: unit }),
-    onHistory: (unit: FleetUnit) => setModal({ kind: "history", unit }),
-    onTransfer: (unit: FleetUnit) =>
+    onEdit: (unit: CarUnit) => setModal({ kind: "car", item: unit }),
+    onHistory: (unit: CarUnit) => setModal({ kind: "history", unit }),
+    onTransfer: (unit: CarUnit) =>
       setModal({ kind: "transfer", unitId: unit.id }),
-    onStatus: (unit: FleetUnit) =>
+    onStatus: (unit: CarUnit) =>
       setModal(
         unit.carModelLocationId
           ? { kind: "status", unit }
@@ -343,10 +343,10 @@ export function AdminCars() {
         <div>
           <div className="mb-2 flex flex-wrap items-center gap-2 text-[10px] font-medium">
             <span className="tracking-widest text-blue-600">
-              FLEET MANAGEMENT
+              CAR MANAGEMENT
             </span>
             <span className="rounded-full bg-blue-100 px-2 py-0.5 text-blue-700">
-              Multi-Location Fleet
+              Cars Across Locations
             </span>
           </div>
           <h1 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
@@ -406,7 +406,7 @@ export function AdminCars() {
           </button>
         </div>
       )}
-      <FleetOverview
+      <CarsOverview
         summary={loaded && !error ? data.summary : undefined}
         loading={loading}
       />
@@ -437,7 +437,7 @@ export function AdminCars() {
           <span className="text-cyan-200">รถรายคัน</span>
         </div>
       </div>
-      <FleetFilters
+      <CarsFilters
         filters={filters}
         countries={countries}
         view={view}
@@ -465,7 +465,7 @@ export function AdminCars() {
           >
             {loading ? "กำลังโหลด…" : "↻ โหลดข้อมูลใหม่"}
           </button>
-          {view === "fleet" && (
+          {view === "inventory" && (
             <button
               disabled={disabled || !results.units.length}
               onClick={exportCsv}
@@ -495,12 +495,12 @@ export function AdminCars() {
           กำลังโหลดรุ่นรถ สาขา และทะเบียนรถ…
         </div>
       )}
-      {(["model", "location", "fleet"] as const).map((panel) => (
+      {(["model", "location", "inventory"] as const).map((panel) => (
         <div
           key={panel}
-          id={`fleet-panel-${panel}`}
+          id={`cars-panel-${panel}`}
           role="tabpanel"
-          aria-labelledby={`fleet-tab-${panel}`}
+          aria-labelledby={`cars-tab-${panel}`}
           tabIndex={0}
           hidden={view !== panel}
           aria-busy={loading}
@@ -526,7 +526,7 @@ export function AdminCars() {
                 </div>
               ) : panel === "model" ? (
                 <>
-                  <FleetModelView
+                  <CarsModelView
                     models={results.models.slice(start, start + pageSize)}
                     offers={results.offers}
                     units={results.units}
@@ -550,12 +550,12 @@ export function AdminCars() {
                       <h3 className="border-b border-amber-100 bg-amber-50 p-4 text-sm font-medium text-amber-800">
                         รถที่ยังไม่จัดกลุ่ม ({ungrouped.length} คัน)
                       </h3>
-                      <FleetUnitTable units={ungrouped} {...actions} />
+                      <CarsUnitTable units={ungrouped} {...actions} />
                     </section>
                   )}
                 </>
               ) : panel === "location" ? (
-                <FleetLocationView
+                <CarsLocationView
                   countries={countries}
                   locationIds={pagedLocations}
                   offers={results.offers}
@@ -580,7 +580,7 @@ export function AdminCars() {
                   aria-label="ตารางทะเบียนรถ"
                   className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
                 >
-                  <FleetUnitTable
+                  <CarsUnitTable
                     units={results.units.slice(start, start + pageSize)}
                     {...actions}
                   />
@@ -634,7 +634,7 @@ export function AdminCars() {
           onClose={() => setModal(null)}
           onSave={(body) =>
             mutate(
-              `/api/fleet/models${modal.item ? `/${encodeURIComponent(modal.item.id)}` : ""}`,
+              `/api/cars/models${modal.item ? `/${encodeURIComponent(modal.item.id)}` : ""}`,
               modal.item ? "PATCH" : "POST",
               body,
             )
@@ -651,7 +651,7 @@ export function AdminCars() {
           onClose={() => setModal(null)}
           onSave={(body) =>
             mutate(
-              `/api/fleet/offers${modal.item ? `/${encodeURIComponent(modal.item.id)}` : ""}`,
+              `/api/cars/offers${modal.item ? `/${encodeURIComponent(modal.item.id)}` : ""}`,
               modal.item ? "PATCH" : "POST",
               body,
             )
@@ -677,7 +677,7 @@ export function AdminCars() {
           onClose={() => setModal(null)}
           onSave={(unit, body) =>
             mutate(
-              `/api/fleet/cars/${encodeURIComponent(unit.id)}`,
+              `/api/cars/${encodeURIComponent(unit.id)}`,
               "PATCH",
               body,
             )
@@ -697,7 +697,7 @@ export function AdminCars() {
           onClose={() => setModal(null)}
           onSave={(body) =>
             mutate(
-              `/api/fleet/cars/${encodeURIComponent(modal.unit.id)}`,
+              `/api/cars/${encodeURIComponent(modal.unit.id)}`,
               "PATCH",
               body,
             )

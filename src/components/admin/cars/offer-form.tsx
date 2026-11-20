@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent, type ReactNode } from "react";
 import type { Country } from "@/lib/rental";
-import type { FleetModel, FleetOffer } from "@/lib/fleet";
+import type { CarModel, CarOffer } from "@/lib/cars";
 import { Dialog } from "@/components/shared/dialog";
 import { AutocompleteSelect } from "../autocomplete-select";
 
@@ -24,8 +24,8 @@ export function OfferForm({
   onClose,
   onSave,
 }: {
-  offer: FleetOffer | null;
-  models: FleetModel[];
+  offer: CarOffer | null;
+  models: CarModel[];
   countries: Country[];
   initialModelId?: string;
   initialLocationId?: string;
