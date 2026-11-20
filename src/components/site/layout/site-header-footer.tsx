@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type { Member } from "@/lib/account";
 
 export function scrollHomeTop() {
@@ -13,15 +13,93 @@ export function scrollHomeTop() {
   }
 }
 
+function AccountMenu({
+  name,
+  active,
+  onOpen,
+}: {
+  name: string;
+  active: boolean;
+  onOpen: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const menuId = useId();
+  const menuRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function closeOnOutsideClick(event: PointerEvent) {
+      if (event.target instanceof Node && !menuRef.current?.contains(event.target)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("pointerdown", closeOnOutsideClick);
+    return () => document.removeEventListener("pointerdown", closeOnOutsideClick);
+  }, [open]);
+
+  return (
+    <div
+      ref={menuRef}
+      className="relative min-w-0 max-w-40"
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false);
+      }}
+      onKeyDown={(event) => {
+        if (open && event.key === "Escape") {
+          event.stopPropagation();
+          setOpen(false);
+          triggerRef.current?.focus();
+        }
+      }}
+    >
+      <button
+        ref={triggerRef}
+        type="button"
+        aria-expanded={open}
+        aria-controls={menuId}
+        title={name}
+        onClick={() => {
+          setOpen(!open);
+          if (!open) onOpen();
+        }}
+        className="group flex w-full min-w-0 items-center gap-1 rounded-lg bg-blue-50 px-2.5 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100"
+      >
+        <span className="truncate">{name}</span>
+        <span aria-hidden="true" className="shrink-0 text-sm leading-none group-aria-expanded:rotate-180">
+          ▾
+        </span>
+      </button>
+      <div
+        id={menuId}
+        hidden={!open}
+        className="absolute right-0 top-full z-10 mt-2 w-max min-w-36 rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg"
+      >
+        <Link
+          href="/bookings"
+          aria-current={active ? "page" : undefined}
+          onClick={() => {
+            if (active) triggerRef.current?.focus();
+            setOpen(false);
+          }}
+          className="block rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-700 aria-[current=page]:bg-blue-50 aria-[current=page]:text-blue-700"
+        >
+          ประวัติการจอง
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 export function Header({
-  search,
+  page,
   onAuth,
   member,
   sessionLoading,
   loggingOut,
   onLogout,
 }: {
-  search: boolean;
+  page: "home" | "search" | "bookings";
   onAuth: (tab: "login" | "register") => void;
   member: Member | null;
   sessionLoading: boolean;
@@ -30,8 +108,8 @@ export function Header({
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const links = [
-    { href: "/", label: "หน้าแรก", active: !search },
-    { href: "/search", label: "ค้นหารถทั้งหมด", active: search },
+    { href: "/", label: "หน้าแรก", active: page === "home" },
+    { href: "/search", label: "ค้นหารถทั้งหมด", active: page === "search" },
     { href: "/#popular-destinations", label: "ประเทศที่ให้บริการ" },
     { href: "/#pricing-rules-info", label: "กฎการคิดราคา" },
   ];
@@ -54,7 +132,7 @@ export function Header({
             <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-xl font-bold text-white shadow-sm">
               F
             </span>
-            <span>
+            <span className={member ? "hidden min-[440px]:block" : "hidden min-[360px]:block"}>
               <span className="flex items-center text-xl font-bold tracking-tight text-slate-900">
                 FUNCH{" "}
                 <span className="ml-1 text-base font-semibold text-blue-600">
@@ -83,7 +161,7 @@ export function Header({
             ))}
           </nav>
         </div>
-        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           <label className="hidden items-center rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-medium text-slate-700 md:flex">
             <span className="mr-1.5 text-slate-400">สกุลเงิน:</span>
             <select
@@ -100,16 +178,16 @@ export function Header({
             <span className="text-xs text-slate-500">กำลังตรวจสอบบัญชี…</span>
           ) : member ? (
             <>
-              <span
-                className="hidden max-w-40 truncate text-xs font-semibold text-blue-700 sm:block"
-                title={member.email}
-              >
-                {member.name}
-              </span>
+              <AccountMenu
+                key={member.id}
+                name={member.name}
+                active={page === "bookings"}
+                onOpen={() => setMenuOpen(false)}
+              />
               <button
                 onClick={onLogout}
                 disabled={loggingOut}
-                className="rounded-lg border border-slate-200 px-3 py-2 text-xs text-slate-700 disabled:opacity-50"
+                className="shrink-0 whitespace-nowrap rounded-lg border border-slate-200 px-3 py-2 text-xs text-slate-700 disabled:opacity-50"
               >
                 {loggingOut ? "กำลังออก…" : "ออกจากระบบ"}
               </button>
@@ -135,7 +213,7 @@ export function Header({
             aria-label="เปิดเมนู"
             aria-expanded={menuOpen}
             aria-controls="mobile-menu"
-            className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-slate-600 xl:hidden"
+            className="shrink-0 rounded-lg border border-slate-200 px-2.5 py-1.5 text-slate-600 xl:hidden"
           >
             ☰
           </button>
@@ -147,11 +225,6 @@ export function Header({
           aria-label="เมนูมือถือ"
           className="space-y-1 border-t border-slate-100 bg-white p-4 xl:hidden"
         >
-          {member && (
-            <p className="px-3 py-2 text-sm font-semibold text-blue-700">
-              {member.name}
-            </p>
-          )}
           {links.map((link) => (
             <Link
               onClick={() => {
@@ -162,6 +235,7 @@ export function Header({
               }}
               href={link.href}
               key={link.href}
+              aria-current={link.active ? "page" : undefined}
               className={`block rounded-lg px-3 py-2 text-sm ${link.active ? "bg-blue-50 text-blue-600" : "text-slate-600 hover:bg-slate-50"}`}
             >
               {link.label}
