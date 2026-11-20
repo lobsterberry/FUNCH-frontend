@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { defaultCriteria, getSearchCities } from "../src/lib/rental.ts";
+import { getCountry, getSearchCities } from "../src/lib/rental.ts";
 
 // Master data is loaded from the API; provide it explicitly in unit tests.
 const countries = [
@@ -26,12 +26,19 @@ test("selects the city for every country's default airport", () => {
 test("uses the pickup city even when the return city differs", () => {
   assert.deepEqual(
     getSearchCities({
-      ...defaultCriteria,
+      country: "JP",
       location: "ฮอกไกโด",
       return_location: "โอซาก้า",
     }, countries),
     ["ฮอกไกโด"],
   );
+});
+
+test("country lookup returns only the requested API record", () => {
+  assert.equal(getCountry("TH", countries), countries[1]);
+  assert.equal(getCountry("all", countries), undefined);
+  assert.equal(getCountry("DE", countries), undefined);
+  assert.equal(getCountry("TH", []), undefined);
 });
 
 test("does not infer an unrelated city for unknown or unrestricted searches", () => {

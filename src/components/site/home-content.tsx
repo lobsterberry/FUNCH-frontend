@@ -2,18 +2,25 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { defaultCriteria, type Car, type Country } from "@/lib/rental";
+import {
+  getCountry,
+  type Car,
+  type Country,
+  type SearchCriteria,
+} from "@/lib/rental";
 import { CarCard } from "./car-card";
 import { SearchForm } from "./search-form";
 
 export function HomeContent({
   countries = [],
   cars = [],
+  criteria,
   onDetails,
   onBook,
 }: {
   countries?: Country[];
   cars?: Car[];
+  criteria: SearchCriteria;
   onDetails: (car: Car) => void;
   onBook: (car: Car) => void;
 }) {
@@ -57,7 +64,7 @@ export function HomeContent({
           </p>
         </div>
         <div className="relative z-20 mx-auto mt-10 max-w-5xl">
-          <SearchForm countries={countries} />
+          <SearchForm countries={countries} initial={criteria} />
         </div>
       </section>
       <section
@@ -138,7 +145,7 @@ export function HomeContent({
             <CarCard
               key={car.id}
               car={car}
-              criteria={defaultCriteria}
+              country={getCountry(car.country, countries)}
               onDetails={onDetails}
               onBook={onBook}
             />

@@ -1,13 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {
-  defaultCriteria,
-  rentalDuration,
-  rentalTotal,
-} from "../src/lib/rental.ts";
+import { rentalDuration, rentalTotal } from "../src/lib/rental.ts";
 
 const criteria = (pickupDate, pickupTime, returnDate, returnTime) => ({
-  ...defaultCriteria,
+  country: "",
+  location: "",
   pickup_date: pickupDate,
   pickup_time: pickupTime,
   return_date: returnDate,
@@ -53,8 +50,9 @@ test("hourly charging resumes after a full 24-hour period", () => {
   assert.equal(rentalTotal(rate, trip), 2480);
 });
 test("wireframe's 2 days 5 hours with a 15:00 return charges 3 days", () => {
-  assert.equal(rentalDuration(defaultCriteria).label, "3 วัน");
-  assert.equal(rentalTotal(rate, defaultCriteria), 6600);
+  const trip = criteria("2026-11-20", "10:00", "2026-11-22", "15:00");
+  assert.equal(rentalDuration(trip).label, "3 วัน");
+  assert.equal(rentalTotal(rate, trip), 6600);
 });
 test("an exact full-day period does not add another late-return day", () => {
   assert.equal(

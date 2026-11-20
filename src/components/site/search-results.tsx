@@ -1,17 +1,18 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
 import {
   getCountry,
   getSearchCities,
   money,
   rentalDuration,
-  resolveLocation,
   type Car,
   type Country,
   type SearchCriteria,
 } from "@/lib/rental";
 import { CarCard } from "./car-card";
+import { RentalDurationBadge } from "./rental-duration-badge";
 
 type Filters = {
   country: string;
@@ -29,7 +30,7 @@ const freshFilters = (
   criteria: SearchCriteria,
   countries: Country[] = [],
 ): Filters => ({
-  country: criteria.country,
+  country: criteria.country || "all",
   cities: getSearchCities(criteria, countries),
   categories: [],
   steering: "all",
@@ -89,6 +90,7 @@ export function SearchResults({
   onBook: (car: Car) => void;
   onEdit: (criteria: SearchCriteria) => void;
 }) {
+  const router = useRouter();
   const [filters, setFilters] = useState<Filters>(() =>
     freshFilters(criteria, countries),
   );
@@ -96,14 +98,9 @@ export function SearchResults({
   const [sort, setSort] = useState("recommended");
   const [view, setView] = useState<"list" | "grid">("list");
   const [page, setPage] = useState(1);
+  const availabilitySearch = Boolean(criteria.pickup_date);
   const duration = rentalDuration(criteria);
   const country = getCountry(filters.country, countries);
-  const location =
-    filters.country === "all"
-      ? "ทุกประเทศ"
-      : filters.country === criteria.country
-        ? criteria.location
-        : (country?.location ?? criteria.location);
   const baseCars = cars.filter(
     (car) => filters.country === "all" || car.country === filters.country,
   );
@@ -218,14 +215,7 @@ export function SearchResults({
       ? [
           {
             label: `${country.flag} ${country.name}`,
-            clear: () => {
-              setFilters((current) => ({
-                ...current,
-                country: "all",
-                cities: [],
-              }));
-              setPage(1);
-            },
+            clear: () => router.push("/search?country=all"),
           },
         ]
       : []),
@@ -251,18 +241,6 @@ export function SearchResults({
         ]
       : []),
   ];
-  const editCriteria = {
-    ...criteria,
-    country:
-      filters.country === "all"
-        ? (countries[0]?.code ?? "TH")
-        : filters.country,
-    location:
-      filters.country === "all"
-        ? (getCountry(countries[0]?.code ?? "TH", countries)?.location ??
-          location)
-        : location,
-  };
   return (
     <main id="main-content" className="flex-1">
       <section className="border-b border-slate-200 bg-white px-4 py-3.5 shadow-sm sm:px-6 lg:px-8">
@@ -277,30 +255,20 @@ export function SearchResults({
                   ? "ทุกประเทศ"
                   : `${country?.name ?? filters.country}:`}
               </strong>
-              <span>{filters.country !== "all" && location}</span>
+              {criteria.location && <span>{criteria.location}</span>}
             </div>
-            <div className="flex flex-wrap items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 font-medium text-slate-700">
-              <span>
-                📅 {dateLabel(criteria.pickup_date, criteria.pickup_time)}
-              </span>
-              <span className="text-slate-400">➔</span>
-              <span>
-                {dateLabel(criteria.return_date, criteria.return_time)}
-              </span>
-            </div>
-            <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-900">
-              <span>
-                ⏱️ รวม:{" "}
-                {duration
-                  ? `${duration.elapsedDays} วัน ${duration.elapsedHours} ชั่วโมง`
-                  : "ช่วงเวลาไม่ถูกต้อง"}
-              </span>
-              {duration && (
-                <span className="rounded bg-amber-200/80 px-1.5 py-0.5 text-[10px]">
-                  คิดเป็น {duration.label}
+            {availabilitySearch && (
+              <div className="flex flex-wrap items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 font-medium text-slate-700">
+                <span>
+                  📅 {dateLabel(criteria.pickup_date, criteria.pickup_time)}
                 </span>
-              )}
-            </div>
+                <span className="text-slate-400">➔</span>
+                <span>
+                  {dateLabel(criteria.return_date, criteria.return_time)}
+                </span>
+              </div>
+            )}
+            {duration && <RentalDurationBadge duration={duration} />}
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <button
@@ -312,10 +280,10 @@ export function SearchResults({
               ☷ ตัวกรอง (Filters)
             </button>
             <button
-              onClick={() => onEdit(editCriteria)}
+              onClick={() => onEdit(criteria)}
               className="rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-200"
             >
-              ✏️ แก้ไขการค้นหา
+              {availabilitySearch ? "✏️ แก้ไขการค้นหา" : "เลือกวันและเวลาเช่า"}
             </button>
           </div>
         </div>
@@ -349,22 +317,23 @@ export function SearchResults({
                 id="filter-country"
                 value={filters.country}
                 onChange={(event) => {
-                  const selected = getCountry(event.target.value, countries);
+                  const countryCode = event.target.value;
+                  if (!availabilitySearch || countryCode === "all") {
+                    router.push(`/search?${new URLSearchParams({ country: countryCode })}`);
+                    return;
+                  }
                   onEdit({
                     ...criteria,
-                    country: selected.code,
-                    location: selected.location,
-                    locationId: resolveLocation(
-                      selected.locations || [],
-                      undefined,
-                      selected.location,
-                    )?.id,
+                    country: countryCode,
+                    location: "",
+                    locationId: undefined,
                     return_location: undefined,
                     dropoffLocationId: undefined,
                   });
                 }}
                 className="form-input bg-slate-50"
               >
+                <option value="all">ทุกประเทศ</option>
                 {countries.map((item) => (
                   <option key={item.code} value={item.code}>
                     {item.flag} {item.name} ({item.english})
@@ -626,20 +595,7 @@ export function SearchResults({
                   โปร่งใส ไม่มีชาร์จแฝง
                 </span>
               </div>
-            ) : (
-              <div
-                role="alert"
-                className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700"
-              >
-                ช่วงเวลาคืนรถต้องอยู่หลังเวลารับรถ{" "}
-                <button
-                  onClick={() => onEdit(editCriteria)}
-                  className="underline"
-                >
-                  แก้ไขการค้นหา
-                </button>
-              </div>
-            )}
+            ) : null}
             <div
               className={
                 view === "grid"
@@ -651,8 +607,9 @@ export function SearchResults({
                 <CarCard
                   key={car.id}
                   car={car}
+                  country={getCountry(car.country, countries)}
                   list={view === "list"}
-                  criteria={criteria}
+                  criteria={availabilitySearch ? criteria : undefined}
                   onDetails={onDetails}
                   onBook={onBook}
                 />

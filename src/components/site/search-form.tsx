@@ -2,8 +2,9 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { RentalDurationBadge } from "./rental-duration-badge";
+import { RentalTimeSelect, selectableRentalTime } from "./rental-time-select";
 import {
-  defaultCriteria,
   getCountry,
   rentalDuration,
   resolveLocation,
@@ -13,22 +14,27 @@ import {
 } from "@/lib/rental";
 
 export function SearchForm({
-  countries = [],
-  initial = defaultCriteria,
+  countries,
+  initial,
   onComplete,
 }: {
-  countries?: Country[];
-  initial?: SearchCriteria;
+  countries: Country[];
+  initial: SearchCriteria;
   onComplete?: () => void;
 }) {
   const router = useRouter();
-  const [criteria, setCriteria] = useState(initial);
+  const [criteria, setCriteria] = useState(() => ({
+    ...initial,
+    pickup_time: selectableRentalTime(initial.pickup_time),
+    return_time: selectableRentalTime(initial.return_time),
+  }));
   const [differentReturn, setDifferentReturn] = useState(
-    Boolean(initial.return_location),
+    Boolean(initial.dropoffLocationId || initial.return_location),
   );
   const [error, setError] = useState("");
+  const duration = rentalDuration(criteria);
   const country = getCountry(criteria.country, countries);
-  const locations = country.locations || [];
+  const locations = country?.locations ?? [];
   const pickup = resolveLocation(
     locations,
     criteria.locationId,
@@ -43,15 +49,12 @@ export function SearchForm({
     setCriteria((current) => ({ ...current, [key]: value }));
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!rentalDuration(criteria)) {
+    if (!duration) {
       setError("กรุณาเลือกวันและเวลาคืนรถให้หลังจากวันและเวลารับรถ");
       return;
     }
-    if (
-      !criteria.location.trim() ||
-      (differentReturn && !criteria.return_location?.trim())
-    ) {
-      setError("กรุณาระบุสถานที่รับรถและคืนรถให้ครบถ้วน");
+    if (!country || !pickup || (differentReturn && !dropoff)) {
+      setError("กรุณาเลือกประเทศและสาขารับและคืนรถจากรายการ");
       return;
     }
     const params = new URLSearchParams();
@@ -63,10 +66,6 @@ export function SearchForm({
       )
         params.set(key, value);
     });
-    if (!pickup || (differentReturn && !dropoff)) {
-      setError("กรุณาเลือกสาขารับและคืนรถจากรายการ");
-      return;
-    }
     params.set("locationId", pickup.id);
     params.set("location", locationLabel(pickup));
     if (differentReturn && dropoff) {
@@ -76,10 +75,6 @@ export function SearchForm({
     router.push(`/search?${params}`);
     onComplete?.();
   };
-  const timeOptions = Array.from(
-    { length: 24 },
-    (_, hour) => `${String(hour).padStart(2, "0")}:00`,
-  );
   return (
     <div className="rounded-2xl border border-slate-200/80 bg-white p-5 text-slate-800 shadow-2xl sm:p-6">
       <form onSubmit={submit} className="space-y-4">
@@ -91,21 +86,17 @@ export function SearchForm({
             <select
               id="search-country"
               name="country"
-              value={criteria.country}
+              required
+              value={country?.code ?? ""}
               onChange={(event) => {
-                const selected = getCountry(event.target.value, countries);
+                const countryCode = event.target.value;
                 setCriteria((current) => ({
                   ...current,
-                  country: selected?.code ?? event.target.value,
-                  location: selected?.location ?? current.location,
-                  locationId:
-                    resolveLocation(
-                      selected.locations || [],
-                      undefined,
-                      selected.location,
-                    )?.id || "",
-                  dropoffLocationId: "",
-                  return_location: "",
+                  country: countryCode,
+                  location: "",
+                  locationId: undefined,
+                  dropoffLocationId: undefined,
+                  return_location: undefined,
                 }));
               }}
               className="w-full cursor-pointer bg-transparent pr-2 text-sm font-medium"
@@ -153,7 +144,13 @@ export function SearchForm({
               ))}
             </select>
             <div className="mt-1 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500">
-              <span>ยอดนิยม: {country?.cities.join(", ") ?? ""}</span>
+              {country && (
+                <span>
+                  {locations.length
+                    ? `ยอดนิยม: ${country.cities.join(", ")}`
+                    : "ไม่มีสาขาในประเทศนี้"}
+                </span>
+              )}
               <label className="flex cursor-pointer items-center gap-1">
                 <input
                   type="checkbox"
@@ -208,19 +205,12 @@ export function SearchForm({
                 onChange={(event) => update("pickup_date", event.target.value)}
                 className="form-input"
               />
-              <select
-                aria-label="เวลารับรถ"
+              <RentalTimeSelect
+                label="เวลารับรถ"
                 name="pickup_time"
                 value={criteria.pickup_time}
-                onChange={(event) => update("pickup_time", event.target.value)}
-                className="form-input"
-              >
-                {timeOptions.map((time) => (
-                  <option key={time} value={time}>
-                    {time} น.
-                  </option>
-                ))}
-              </select>
+                onChange={(time) => update("pickup_time", time)}
+              />
             </div>
             <p className="mt-1 text-[11px] text-slate-500">
               เวลาท้องถิ่นของประเทศปลายทาง
@@ -247,19 +237,12 @@ export function SearchForm({
                 onChange={(event) => update("return_date", event.target.value)}
                 className="form-input"
               />
-              <select
-                aria-label="เวลาคืนรถ"
+              <RentalTimeSelect
+                label="เวลาคืนรถ"
                 name="return_time"
                 value={criteria.return_time}
-                onChange={(event) => update("return_time", event.target.value)}
-                className="form-input"
-              >
-                {timeOptions.map((time) => (
-                  <option key={time} value={time}>
-                    {time} น.{time > "14:00" ? " (คิดเต็มวัน)" : ""}
-                  </option>
-                ))}
-              </select>
+                onChange={(time) => update("return_time", time)}
+              />
             </div>
             <p
               className={`mt-1 text-[11px] ${criteria.return_time > "14:00" ? "text-amber-600" : "text-slate-500"}`}
@@ -270,29 +253,35 @@ export function SearchForm({
             </p>
           </div>
         </div>
-        {error && (
+        {(error || !countries.length) && (
           <p
             role="alert"
             className="rounded-lg bg-rose-50 p-3 text-sm text-rose-700"
           >
-            {error}
+            {error || "ยังไม่มีประเทศและสาขาที่เปิดให้ค้นหา"}
           </p>
         )}
         <div className="flex flex-col items-center justify-between gap-4 border-t border-slate-100 pt-3 sm:flex-row">
-          <div className="flex w-full items-center gap-2 rounded-xl border border-blue-200/60 bg-blue-50/70 px-3 py-2 text-xs sm:w-auto">
-            <span className="text-base">ℹ️</span>
-            <div>
-              <strong className="text-blue-900">
-                เกณฑ์คำนวณราคาอัตโนมัติ:{" "}
-              </strong>
-              <span className="text-slate-600">
-                เกิน 8 ชม. = คิด 1 วัน | คืนหลัง 14:00 น. = คิด 1 วันเต็ม
-              </span>
+          <div className="grid w-full min-w-0 auto-rows-fr justify-items-start gap-2 sm:w-auto lg:grid-flow-col">
+            {duration && <RentalDurationBadge duration={duration} />}
+            <div className="flex w-full items-center gap-2 rounded-xl border border-blue-200/60 bg-blue-50/70 px-3 py-2 text-xs sm:w-auto">
+              <span className="text-base">ℹ️</span>
+              <div>
+                <strong className="text-blue-900">
+                  เกณฑ์คำนวณราคา:{" "}
+                </strong>
+                <span className="text-slate-600">
+                  เกิน 8 ชม. = คิด 1 วัน | คืนหลัง 14:00 น. = คิด 1 วันเต็ม
+                </span>
+              </div>
             </div>
           </div>
           <button
             type="submit"
-            className="btn-primary flex w-full shrink-0 items-center justify-center gap-2 px-8 py-3.5 text-base shadow-lg shadow-blue-600/30 sm:w-auto"
+            disabled={
+              !countries.length || Boolean(country && !locations.length)
+            }
+            className="btn-primary flex w-full shrink-0 items-center justify-center gap-2 px-8 py-3.5 text-base shadow-lg shadow-blue-600/30 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
           >
             <svg
               aria-hidden="true"

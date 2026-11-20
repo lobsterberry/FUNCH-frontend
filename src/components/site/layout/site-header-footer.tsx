@@ -4,6 +4,15 @@ import Link from "next/link";
 import { useState } from "react";
 import type { Member } from "@/lib/account";
 
+export function scrollHomeTop() {
+  if (typeof window !== "undefined" && window.location.pathname === "/") {
+    if (window.location.hash) {
+      window.history.replaceState(null, "", "/");
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+}
+
 export function Header({
   search,
   onAuth,
@@ -38,6 +47,7 @@ export function Header({
         <div className="flex items-center gap-8">
           <Link
             href="/"
+            onClick={scrollHomeTop}
             aria-label="FUNCH Drive หน้าแรก"
             className="flex shrink-0 items-center gap-2"
           >
@@ -64,15 +74,11 @@ export function Header({
               <Link
                 href={link.href}
                 key={link.href}
+                onClick={link.href === "/" ? scrollHomeTop : undefined}
                 aria-current={link.active ? "page" : undefined}
                 className={`flex items-center gap-1 py-5 transition hover:text-blue-600 ${link.active ? "border-b-2 border-blue-600 text-blue-600" : ""}`}
               >
                 {link.label}
-                {link.label === "กฎการคิดราคา" && (
-                  <span className="rounded-full bg-blue-100 px-1.5 py-0.5 text-[10px] font-bold text-blue-700">
-                    8ชม./14:00น.
-                  </span>
-                )}
               </Link>
             ))}
           </nav>
@@ -148,7 +154,12 @@ export function Header({
           )}
           {links.map((link) => (
             <Link
-              onClick={() => setMenuOpen(false)}
+              onClick={() => {
+                setMenuOpen(false);
+                if (link.href === "/") {
+                  scrollHomeTop();
+                }
+              }}
               href={link.href}
               key={link.href}
               className={`block rounded-lg px-3 py-2 text-sm ${link.active ? "bg-blue-50 text-blue-600" : "text-slate-600 hover:bg-slate-50"}`}
@@ -183,7 +194,11 @@ export function Footer() {
           <span>เดินทางอย่างมั่นใจ ในทุกจุดหมาย</span>
         </div>
         <div className="flex items-center gap-4">
-          <Link href="/" className="text-blue-600 hover:underline">
+          <Link
+            href="/"
+            onClick={scrollHomeTop}
+            className="text-blue-600 hover:underline"
+          >
             หน้าแรก
           </Link>
           <Link href="/search" className="text-blue-600 hover:underline">

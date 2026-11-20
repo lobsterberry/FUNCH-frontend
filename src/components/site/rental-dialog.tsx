@@ -1,22 +1,24 @@
 "use client";
 
 import { CarVisual, CarSpecs, Features } from "./car-card";
-import { type Car, money } from "@/lib/rental";
+import { type Car, type Country, money } from "@/lib/rental";
 import { Dialog } from "@/components/shared/dialog";
 
 export function CarDetails({
   car,
+  country,
   onClose,
   onBook,
 }: {
   car: Car;
+  country: Country | undefined;
   onClose: () => void;
   onBook: (car: Car) => void;
 }) {
   return (
     <Dialog title={car.name} onClose={onClose}>
       <div className="space-y-4">
-        <CarVisual car={car} compact />
+        <CarVisual car={car} country={country} compact />
         <p className="text-sm text-slate-600">{car.description}</p>
         <CarSpecs car={car} detailed />
         <Features car={car} />

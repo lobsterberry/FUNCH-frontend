@@ -87,6 +87,7 @@ export function resolveLocation(
   label?: string,
 ) {
   if (id) return locations.find((location) => location.id === id);
+  if (!label) return undefined;
   return (
     locations.find(
       (location) =>
@@ -96,44 +97,21 @@ export function resolveLocation(
     ) ??
     locations.find(
       (location) =>
-        label?.includes(location.nameTh) || label?.includes(location.name),
+        (location.nameTh && label.includes(location.nameTh)) ||
+        (location.name && label.includes(location.name)),
     )
   );
 }
-const fallbackCountry: Country = {
-  code: "JP",
-  name: "ญี่ปุ่น",
-  english: "Japan",
-  flag: "🇯🇵",
-  city: "โตเกียว",
-  location: "โตเกียว - สนามบินฮาเนดะ (HND Airport)",
-  steering: "right",
-  cities: ["โตเกียว", "โอซาก้า", "ฟุกุโอกะ", "ฮอกไกโด"],
-};
 
-export const defaultCriteria: SearchCriteria = {
-  country: "JP",
-  location: "โตเกียว - สนามบินฮาเนดะ (HND Airport)",
-  pickup_date: "2026-11-20",
-  pickup_time: "10:00",
-  return_date: "2026-11-22",
-  return_time: "15:00",
-  service: "self-drive",
-};
-
-export const getCountry = (
-  code: string,
-  countryList: Country[] = [],
-): Country =>
-  countryList.find((country) => country.code === code) ??
-  countryList[0] ??
-  fallbackCountry;
+export function getCountry(code: string, countries: Country[]) {
+  return countries.find((country) => country.code === code);
+}
 
 export function getSearchCities(
   criteria: Pick<SearchCriteria, "country" | "location">,
   countryList: Country[] = [],
 ): string[] {
-  const country = countryList.find((item) => item.code === criteria.country);
+  const country = getCountry(criteria.country, countryList);
   if (!country) return [];
   const location = criteria.location.trim().normalize("NFC");
   return country.cities.filter((city) => location.includes(city));

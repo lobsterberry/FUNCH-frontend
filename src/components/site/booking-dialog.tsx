@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Dialog } from "@/components/shared/dialog";
 import { api, ApiError, signIn, type Member } from "@/lib/account";
 import { bookingInstant } from "@/lib/booking-time";
+import { RentalTimeSelect, selectableRentalTime } from "./rental-time-select";
 import {
   money,
   resolveLocation,
@@ -47,7 +48,11 @@ export function BookingDialog({
   authOnly?: boolean;
 }) {
   const [tab, setTab] = useState(initialTab);
-  const [dates, setDates] = useState(criteria);
+  const [dates, setDates] = useState(() => ({
+    ...criteria,
+    pickup_time: selectableRentalTime(criteria.pickup_time),
+    return_time: selectableRentalTime(criteria.return_time),
+  }));
   const [busy, setBusy] = useState(false);
   const inFlight = useRef(false);
   const [error, setError] = useState("");
@@ -80,13 +85,16 @@ export function BookingDialog({
     );
   });
   const dropoff = locations.find((location) => location.id === dropoffId);
+  const hasDates = Boolean(
+    dates.pickup_date && dates.pickup_time && dates.return_date && dates.return_time,
+  );
   let start = "",
     end = "",
     dateError = "";
-  if (!authOnly) {
+  if (!authOnly && !pickup?.timeZone) {
+    dateError = "ไม่พบสถานที่รับรถ กรุณาเลือกรถใหม่";
+  } else if (!authOnly && hasDates && pickup) {
     try {
-      if (!pickup?.timeZone)
-        throw new Error("ไม่พบสถานที่รับรถ กรุณาเลือกรถใหม่");
       start = bookingInstant(
         dates.pickup_date,
         dates.pickup_time,
@@ -106,7 +114,7 @@ export function BookingDialog({
     }
   }
   const quoteKey =
-    !dateError && car ? `${car.id}|${start}|${end}|${dropoffId}` : "";
+    !dateError && hasDates && car ? `${car.id}|${start}|${end}|${dropoffId}` : "";
   const calculation = quote?.key === quoteKey ? quote.calculation : null;
   useEffect(() => {
     if (!quoteKey || authOnly || !car) return;
@@ -351,25 +359,35 @@ export function BookingDialog({
                         ["วันที่คืนรถ", "return_date", "date"],
                         ["เวลาคืนรถ", "return_time", "time"],
                       ] as const
-                    ).map(([label, name, type]) => (
-                      <label key={name} className="block font-medium">
-                        {label}
-                        <input
-                          required
-                          aria-label={label}
-                          type={type}
-                          value={dates[name]}
-                          className="form-input mt-1"
-                          onChange={(event) => {
-                            setDates((current) => ({
-                              ...current,
-                              [name]: event.target.value,
-                            }));
-                            setQuoteError("");
-                          }}
-                        />
-                      </label>
-                    ))}
+                    ).map(([label, name, type]) => {
+                      const updateDate = (value: string) => {
+                        setDates((current) => ({ ...current, [name]: value }));
+                        setQuoteError("");
+                      };
+                      return (
+                        <label key={name} className="block font-medium">
+                          {label}
+                          {type === "time" ? (
+                            <RentalTimeSelect
+                              label={label}
+                              name={name}
+                              value={dates[name]}
+                              onChange={updateDate}
+                              className="form-input mt-1"
+                            />
+                          ) : (
+                            <input
+                              required
+                              aria-label={label}
+                              type="date"
+                              value={dates[name]}
+                              className="form-input mt-1"
+                              onChange={(event) => updateDate(event.target.value)}
+                            />
+                          )}
+                        </label>
+                      );
+                    })}
                   </div>
                   <label className="block font-medium">
                     สถานที่คืนรถ
@@ -398,7 +416,10 @@ export function BookingDialog({
                       รอแอดมินอนุมัติ
                     </p>
                   )}
-                  {!calculation && !dateError && !quoteError && (
+                  {!hasDates && !dateError && (
+                    <p className="text-slate-500">ระบุวันและเวลาเช่าเพื่อคำนวณราคา</p>
+                  )}
+                  {quoteKey && !calculation && !quoteError && (
                     <p role="status">กำลังคำนวณราคา…</p>
                   )}
                   {(dateError || quoteError) && (

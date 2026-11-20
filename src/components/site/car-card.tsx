@@ -1,22 +1,24 @@
 "use client";
 
 import {
-  Car,
-  getCountry,
+  type Car,
+  type Country,
   money,
-  SearchCriteria,
+  type SearchCriteria,
   rentalDuration,
   rentalTotal,
 } from "@/lib/rental";
 
 export function CarVisual({
   car,
+  country,
   compact = false,
 }: {
   car: Car;
+  country: Country | undefined;
   compact?: boolean;
 }) {
-  const country = getCountry(car.country);
+  const countryName = country?.name ?? car.country;
   return (
     <div
       className={`relative flex items-center justify-center overflow-hidden bg-linear-to-tr from-slate-100 to-slate-200 p-4 ${compact ? "h-44 rounded-xl" : "h-48"}`}
@@ -24,8 +26,8 @@ export function CarVisual({
       <span
         className={`absolute top-3 left-3 flex items-center gap-1.5 rounded-lg bg-white/95 px-2 py-1 font-semibold text-slate-800 shadow-sm ${compact ? "text-[10px]" : "text-xs"}`}
       >
-        <span>{country.flag}</span>
-        {compact ? country.name : `${car.city}, ${country.name}`}
+        {country?.flag && <span>{country.flag}</span>}
+        {compact ? countryName : `${car.city}, ${countryName}`}
       </span>
       <span
         className={`absolute top-3 right-3 rounded-md px-2.5 py-0.5 text-[11px] font-medium text-white ${car.fuel === "EV" ? "bg-emerald-600" : "bg-blue-600"}`}
@@ -130,14 +132,16 @@ export function Features({ car }: { car: Car }) {
 
 export function CarCard({
   car,
+  country,
   list = false,
   criteria,
   onDetails,
   onBook,
 }: {
   car: Car;
+  country: Country | undefined;
   list?: boolean;
-  criteria: SearchCriteria;
+  criteria?: SearchCriteria;
   onDetails: (car: Car) => void;
   onBook: (car: Car) => void;
 }) {
@@ -145,15 +149,15 @@ export function CarCard({
     car.quotedDays !== undefined
       ? {
           label: `${car.quotedDays} วัน ${car.quotedHours || 0} ชั่วโมง`,
-          lateReturn: criteria.return_time > "14:00",
+          lateReturn: Boolean(criteria && criteria.return_time > "14:00"),
         }
-      : rentalDuration(criteria);
-  const total = car.quotedTotal ?? rentalTotal(car, criteria);
+      : (criteria ? rentalDuration(criteria) : null);
+  const total = car.quotedTotal ?? (criteria ? rentalTotal(car, criteria) : null);
   if (list)
     return (
       <article className="car-result flex min-w-0 flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:shadow-md sm:p-5 xl:flex-row">
         <div className="shrink-0 xl:w-64">
-          <CarVisual car={car} compact />
+          <CarVisual car={car} country={country} compact />
           <p className="mt-2 text-center text-[11px] text-slate-400">
             ผู้ให้บริการ: {car.provider}
             {car.availableCount !== undefined && (
@@ -192,7 +196,9 @@ export function CarCard({
           </div>
           <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3 text-xs">
             <span className="font-medium text-emerald-600">
-              ✓ รถพร้อมส่งมอบ • รอแอดมินอนุมัติการจอง
+              {car.availabilityChecked
+                ? "✓ รถว่างตามช่วงเวลาที่เลือก • รอแอดมินอนุมัติการจอง"
+                : "เลือกวันและเวลาเช่าเพื่อตรวจสอบรถว่าง"}
             </span>
             <button
               onClick={() => onDetails(car)}
@@ -223,27 +229,26 @@ export function CarCard({
                 <span className="text-[10px] font-normal">/ชม.</span>
               </strong>
             </div>
-            <div className="mt-3 rounded-lg border border-blue-200 bg-white p-2">
-              <p className="text-[10px] text-slate-500">
-                คำนวณตามทริป ({duration?.label ?? "ช่วงเวลาไม่ถูกต้อง"}):
-              </p>
-              <p className="text-xl font-bold text-blue-600">
-                {total === null ? "—" : money(total)}
-              </p>
-              <p className="mt-0.5 text-[9px] text-slate-500">
-                {duration?.lateReturn
-                  ? "*คืนเกิน 14:00 น. ใช้อัตรารายวันสำหรับเศษเวลา"
-                  : "*คำนวณตามเวลาท้องถิ่นของปลายทาง"}
-              </p>
-            </div>
+            {total !== null && (
+              <div className="mt-3 rounded-lg border border-blue-200 bg-white p-2">
+                <p className="text-[10px] text-slate-500">
+                  คำนวณตามทริป{duration && ` (${duration.label})`}
+                </p>
+                <p className="text-xl font-bold text-blue-600">{money(total)}</p>
+                <p className="mt-0.5 text-[9px] text-slate-500">
+                  {duration?.lateReturn
+                    ? "*คืนเกิน 14:00 น. ใช้อัตรารายวันสำหรับเศษเวลา"
+                    : "*คำนวณตามเวลาท้องถิ่นของปลายทาง"}
+                </p>
+              </div>
+            )}
           </div>
           <div className="mt-3 space-y-2">
             <button
               onClick={() => onBook(car)}
-              disabled={total === null}
               className="btn-primary w-full py-2.5 text-xs"
             >
-              จองรถรุ่นนี้ →
+              {total === null ? "เลือกวันและเวลาเช่า →" : "จองรถรุ่นนี้ →"}
             </button>
             <p className="text-center text-[10px] text-slate-500">
               เข้าสู่ระบบแล้วจองทันที หรือ สมัครใหม่พร้อมจอง
@@ -254,7 +259,7 @@ export function CarCard({
     );
   return (
     <article className="group flex min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:shadow-xl">
-      <CarVisual car={car} />
+      <CarVisual car={car} country={country} />
       <div className="flex flex-1 flex-col justify-between p-5">
         <div>
           <div className="mb-1 flex flex-wrap items-center justify-between gap-1 text-xs">
@@ -312,7 +317,7 @@ export function CarCard({
               onClick={() => onBook(car)}
               className="btn-primary py-2 text-xs"
             >
-              จองทันที
+              {total === null ? "เลือกวันและเวลาเช่า" : "จองทันที"}
             </button>
           </div>
         </div>
