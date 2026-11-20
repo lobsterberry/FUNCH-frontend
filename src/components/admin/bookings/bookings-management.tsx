@@ -414,7 +414,7 @@ export function BookingsManagement() {
                           onClick={() => setModal({ booking })}
                           className="break-all text-left text-xs font-semibold text-blue-700 hover:underline"
                         >
-                          {booking.bookingNumber}
+                          {booking.bookingNumber.toUpperCase()}
                         </button>
                         <p className="mt-2 text-sm font-medium text-slate-900">
                           {booking.user.name}

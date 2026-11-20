@@ -26,10 +26,19 @@ type Booking = {
   status: string;
 };
 
+const emptyCriteria: SearchCriteria = {
+  country: "",
+  location: "",
+  pickup_date: "",
+  pickup_time: "",
+  return_date: "",
+  return_time: "",
+};
+
 export function BookingDialog({
   car,
-  criteria,
-  countries,
+  criteria = emptyCriteria,
+  countries = [],
   member,
   sessionLoading,
   onMemberChange,
@@ -37,16 +46,15 @@ export function BookingDialog({
   initialTab = "login",
   authOnly = false,
 }: {
-  car?: Car;
-  criteria: SearchCriteria;
-  countries: Country[];
   member: Member | null;
   sessionLoading: boolean;
   onMemberChange: (member: Member | null) => void;
   onClose: () => void;
   initialTab?: "login" | "register";
-  authOnly?: boolean;
-}) {
+} & (
+  | { authOnly: true; car?: never; criteria?: SearchCriteria; countries?: Country[] }
+  | { authOnly?: false; car: Car; criteria: SearchCriteria; countries: Country[] }
+)) {
   const [tab, setTab] = useState(initialTab);
   const [dates, setDates] = useState(() => ({
     ...criteria,

@@ -12,11 +12,11 @@ import {
 } from "@/lib/rental";
 import { HomeContent } from "./home-content";
 import { Header, Footer } from "./layout/site-header-footer";
+import { useSiteAccount } from "./layout/site-account";
 import { SearchResults } from "./search-results";
 import { CarDetails } from "./rental-dialog";
 import { Dialog } from "@/components/shared/dialog";
 import { BookingDialog } from "./booking-dialog";
-import { currentMember, signOut, type Member } from "@/lib/account";
 import { SearchForm } from "./search-form";
 import { bookingInstant } from "@/lib/booking-time";
 
@@ -67,10 +67,8 @@ export default function RentalApp({ mode }: { mode: "home" | "search" }) {
   const requestKey = `${mode}|${searchKey}|${refreshInventory}`;
   const hasInventory = inventory.key.startsWith(`${mode}|${searchKey}|`);
   const cars = hasInventory ? inventory.cars : [];
-  const [member, setMember] = useState<Member | null>(null);
-  const [sessionLoading, setSessionLoading] = useState(true);
-  const [accountError, setAccountError] = useState("");
-  const [loggingOut, setLoggingOut] = useState(false);
+  const { member, updateMember, sessionLoading, accountError, loggingOut, logout } =
+    useSiteAccount();
   const [details, setDetails] = useState<Car | null>(null);
   const [booking, setBooking] = useState<Car | null>(null);
   const [auth, setAuth] = useState<"login" | "register" | null>(null);
@@ -81,44 +79,6 @@ export default function RentalApp({ mode }: { mode: "home" | "search" }) {
       window.scrollTo(0, 0);
     }
   }, [mode]);
-
-  useEffect(() => {
-    let active = true;
-    const refresh = () =>
-      currentMember()
-        .then((value) => {
-          if (active) {
-            setMember(value);
-            setAccountError("");
-          }
-        })
-        .catch(() => {
-          if (active)
-            setAccountError("ตรวจสอบบัญชีไม่สำเร็จ กรุณารีเฟรชหน้าเว็บ");
-        })
-        .finally(() => {
-          if (active) setSessionLoading(false);
-        });
-    void refresh();
-    window.addEventListener("focus", refresh);
-    return () => {
-      active = false;
-      window.removeEventListener("focus", refresh);
-    };
-  }, []);
-
-  const logout = async () => {
-    setLoggingOut(true);
-    setAccountError("");
-    try {
-      await signOut();
-      setMember(null);
-    } catch (cause) {
-      setAccountError((cause as Error).message);
-    } finally {
-      setLoggingOut(false);
-    }
-  };
 
   useEffect(() => {
     let active = true;
@@ -202,7 +162,7 @@ export default function RentalApp({ mode }: { mode: "home" | "search" }) {
   return (
     <>
       <Header
-        search={mode === "search"}
+        page={mode}
         onAuth={setAuth}
         member={member}
         sessionLoading={sessionLoading}
@@ -273,7 +233,7 @@ export default function RentalApp({ mode }: { mode: "home" | "search" }) {
           countries={countryList}
           member={member}
           sessionLoading={sessionLoading}
-          onMemberChange={setMember}
+          onMemberChange={updateMember}
           onClose={() => {
             setBooking(null);
             setRefreshInventory((value) => value + 1);
@@ -288,7 +248,7 @@ export default function RentalApp({ mode }: { mode: "home" | "search" }) {
           countries={countryList}
           member={member}
           sessionLoading={sessionLoading}
-          onMemberChange={setMember}
+          onMemberChange={updateMember}
           onClose={() => setAuth(null)}
         />
       )}{" "}
