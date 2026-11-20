@@ -2,12 +2,12 @@
 
 import { useState, type FormEvent } from "react";
 import type {
-  FleetCatalogData,
-  FleetUnit,
+  CarsCatalogData,
+  CarUnit,
   InventoryMutation,
   VehicleStatus,
-} from "@/lib/fleet";
-import { fleetStatusLabels } from "@/lib/fleet-view";
+} from "@/lib/cars";
+import { inventoryStatusLabels } from "@/lib/cars-view";
 import { money } from "@/lib/rental";
 import { Dialog } from "@/components/shared/dialog";
 import { AutocompleteSelect } from "../autocomplete-select";
@@ -21,8 +21,8 @@ export function CarForm({
   onClose,
   onSave,
 }: {
-  car: FleetUnit | null;
-  catalog: FleetCatalogData;
+  car: CarUnit | null;
+  catalog: CarsCatalogData;
   initialOfferId?: string;
   initialModelId?: string;
   initialLocationId?: string;
@@ -268,7 +268,7 @@ export function CarForm({
                   ["AVAILABLE", "CLEANING", "MAINTENANCE", "INACTIVE"] as const
                 ).map((status) => (
                   <option key={status} value={status}>
-                    {fleetStatusLabels[status]}
+                    {inventoryStatusLabels[status]}
                   </option>
                 ))}
               </select>

@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import type { FleetOffer, FleetUnit, InventoryInput } from "@/lib/fleet";
-import { transferOffers } from "@/lib/fleet-view";
+import type { CarOffer, CarUnit, InventoryInput } from "@/lib/cars";
+import { transferOffers } from "@/lib/cars-view";
 import { Dialog } from "@/components/shared/dialog";
 import { AutocompleteSelect } from "../autocomplete-select";
 
@@ -13,11 +13,11 @@ export function TransferVehicleForm({
   onClose,
   onSave,
 }: {
-  units: FleetUnit[];
-  offers: FleetOffer[];
+  units: CarUnit[];
+  offers: CarOffer[];
   initialUnitId?: string;
   onClose: () => void;
-  onSave: (unit: FleetUnit, input: InventoryInput) => Promise<void>;
+  onSave: (unit: CarUnit, input: InventoryInput) => Promise<void>;
 }) {
   const [unitId, setUnitId] = useState(initialUnitId || "");
   const [destinationId, setDestinationId] = useState("");

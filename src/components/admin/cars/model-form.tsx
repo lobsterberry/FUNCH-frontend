@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, type FormEvent, type ReactNode } from "react";
-import { carCategories, featureOptions } from "@/lib/admin-cars";
-import type { FleetModel } from "@/lib/fleet";
+import { carCategories, featureOptions } from "@/lib/cars-management";
+import type { CarModel } from "@/lib/cars";
 import { Dialog } from "@/components/shared/dialog";
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
@@ -19,7 +19,7 @@ export function ModelForm({
   onClose,
   onSave,
 }: {
-  model: FleetModel | null;
+  model: CarModel | null;
   onClose: () => void;
   onSave: (body: unknown) => Promise<void>;
 }) {

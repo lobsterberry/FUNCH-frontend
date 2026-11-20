@@ -2,10 +2,10 @@
 
 import type { Country } from "@/lib/rental";
 import { money } from "@/lib/rental";
-import type { FleetOffer, FleetUnit } from "@/lib/fleet";
+import type { CarOffer, CarUnit } from "@/lib/cars";
 import { AdminIcon } from "../layout/admin-icon";
 
-export function FleetLocationView({
+export function CarsLocationView({
   countries,
   locationIds,
   offers,
@@ -15,8 +15,8 @@ export function FleetLocationView({
 }: {
   countries: Country[];
   locationIds: Set<string>;
-  offers: FleetOffer[];
-  units: FleetUnit[];
+  offers: CarOffer[];
+  units: CarUnit[];
   onManage: (locationId: string, modelId?: string) => void;
   onOffer: (locationId: string) => void;
 }) {
@@ -81,7 +81,7 @@ export function FleetLocationView({
                       <p className="mt-1 text-base font-semibold text-emerald-600">
                         {
                           stock.filter(
-                            (unit) => unit.fleetStatus === "AVAILABLE",
+                            (unit) => unit.inventoryStatus === "AVAILABLE",
                           ).length
                         }
                       </p>

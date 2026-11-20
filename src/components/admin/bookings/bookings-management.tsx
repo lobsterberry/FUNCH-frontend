@@ -23,7 +23,7 @@ import {
   type BookingList,
   type BookingStatus,
   type ReviewAction,
-} from "@/lib/admin-bookings";
+} from "@/lib/bookings-management";
 import { AdminIcon } from "../layout/admin-icon";
 import { BookingReview } from "./booking-review";
 
@@ -35,7 +35,7 @@ const descriptions: Record<BookingStatus, string> = {
   CANCELLED: "การจองที่ยกเลิกแล้ว",
 };
 
-export function AdminBookings() {
+export function BookingsManagement() {
   const router = useRouter();
   const params = useSearchParams();
   const search = (params.get("search") || "").slice(0, 254);

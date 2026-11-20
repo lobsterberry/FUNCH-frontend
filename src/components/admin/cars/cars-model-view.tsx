@@ -2,12 +2,12 @@
 
 import type { Country } from "@/lib/rental";
 import { money } from "@/lib/rental";
-import type { FleetModel, FleetOffer, FleetUnit } from "@/lib/fleet";
-import { modelBranches } from "@/lib/fleet-view";
-import { FleetUnitTable, type UnitActions } from "./fleet-unit-table";
+import type { CarModel, CarOffer, CarUnit } from "@/lib/cars";
+import { modelBranches } from "@/lib/cars-view";
+import { CarsUnitTable, type UnitActions } from "./cars-unit-table";
 import { AdminIcon } from "../layout/admin-icon";
 
-export function FleetModelView({
+export function CarsModelView({
   models,
   offers,
   units,
@@ -17,12 +17,12 @@ export function FleetModelView({
   onAdd,
   ...actions
 }: {
-  models: FleetModel[];
-  offers: FleetOffer[];
-  units: FleetUnit[];
+  models: CarModel[];
+  offers: CarOffer[];
+  units: CarUnit[];
   countries: Country[];
-  onModel: (model: FleetModel) => void;
-  onOffer: (modelId: string, offer?: FleetOffer, locationId?: string) => void;
+  onModel: (model: CarModel) => void;
+  onOffer: (modelId: string, offer?: CarOffer, locationId?: string) => void;
   onAdd: (context: {
     modelId: string;
     offerId?: string;
@@ -121,7 +121,7 @@ export function FleetModelView({
                   <p className="mt-1 font-semibold text-emerald-600">
                     {
                       modelUnits.filter(
-                        (unit) => unit.fleetStatus === "AVAILABLE",
+                        (unit) => unit.inventoryStatus === "AVAILABLE",
                       ).length
                     }{" "}
                     คัน
@@ -178,7 +178,7 @@ export function FleetModelView({
                       {branch.units.length} คัน · พร้อม{" "}
                       {
                         branch.units.filter(
-                          (unit) => unit.fleetStatus === "AVAILABLE",
+                          (unit) => unit.inventoryStatus === "AVAILABLE",
                         ).length
                       }
                     </span>
@@ -241,7 +241,7 @@ export function FleetModelView({
                       </button>
                     </p>
                   )}
-                  <FleetUnitTable compact units={branch.units} {...actions} />
+                  <CarsUnitTable compact units={branch.units} {...actions} />
                 </section>
               ))}
               {!branches.length && (

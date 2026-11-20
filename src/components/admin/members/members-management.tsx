@@ -17,7 +17,7 @@ import {
   type AdminMember,
   type MemberInput,
   type MemberList,
-} from "@/lib/admin-members";
+} from "@/lib/members-management";
 import { AdminIcon } from "../layout/admin-icon";
 import { Dialog } from "@/components/shared/dialog";
 import { MemberForm } from "./member-form";
@@ -95,7 +95,7 @@ function StatusDialog({
   );
 }
 
-export function AdminMembers({ currentMemberId }: { currentMemberId: string }) {
+export function MembersManagement({ currentMemberId }: { currentMemberId: string }) {
   const router = useRouter();
   const params = useSearchParams();
   const search = (params.get("search") || "").slice(0, 254);

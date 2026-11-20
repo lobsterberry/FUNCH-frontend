@@ -1,11 +1,11 @@
-import type { FleetSummary } from "@/lib/fleet";
+import type { CarsSummary } from "@/lib/cars";
 import { AdminIcon } from "../layout/admin-icon";
 
-export function FleetOverview({
+export function CarsOverview({
   summary,
   loading,
 }: {
-  summary?: FleetSummary;
+  summary?: CarsSummary;
   loading: boolean;
 }) {
   const stats = [

@@ -255,11 +255,11 @@ export function SearchResults({
     ...criteria,
     country:
       filters.country === "all"
-        ? (countries[0]?.code ?? "JP")
+        ? (countries[0]?.code ?? "TH")
         : filters.country,
     location:
       filters.country === "all"
-        ? (getCountry(countries[0]?.code ?? "JP", countries)?.location ??
+        ? (getCountry(countries[0]?.code ?? "TH", countries)?.location ??
           location)
         : location,
   };

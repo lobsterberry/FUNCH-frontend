@@ -7,7 +7,7 @@ import {
   memberRequest,
   type MemberBooking,
   type MemberDetails as Details,
-} from "@/lib/admin-members";
+} from "@/lib/members-management";
 import { Dialog } from "@/components/shared/dialog";
 
 const statusLabels: Record<MemberBooking["status"], string> = {

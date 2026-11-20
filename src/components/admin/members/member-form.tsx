@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import type { AdminMember, MemberInput } from "@/lib/admin-members";
+import type { AdminMember, MemberInput } from "@/lib/members-management";
 import { Dialog } from "@/components/shared/dialog";
 
 export function MemberForm({

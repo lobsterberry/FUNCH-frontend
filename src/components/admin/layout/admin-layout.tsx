@@ -4,7 +4,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import type { Member } from "@/lib/account";
 import { AdminSidebar } from "./admin-sidebar";
 import { AdminNavbar } from "./admin-navbar";
-import { AdminFleetProvider } from "./admin-fleet-context";
+import { CarsManagementProvider } from "./cars-management-context";
 
 export function AdminLayout({
   member,
@@ -23,7 +23,7 @@ export function AdminLayout({
     return () => window.removeEventListener("keydown", closeOnEscape);
   }, [open]);
   return (
-    <AdminFleetProvider>
+    <CarsManagementProvider>
       <div className="min-h-dvh bg-slate-100 lg:pl-64">
         <a
           href="#admin-content"
@@ -41,6 +41,6 @@ export function AdminLayout({
           {children}
         </main>
       </div>
-    </AdminFleetProvider>
+    </CarsManagementProvider>
   );
 }

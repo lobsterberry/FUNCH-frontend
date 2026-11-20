@@ -1,13 +1,13 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { requireAdminPage } from '@/lib/admin-session';
-import { AdminBookings } from '@/components/admin/bookings/admin-bookings';
+import { BookingsManagement } from '@/components/admin/bookings/bookings-management';
 
 export const metadata: Metadata = { title: 'ระบบอนุมัติการจอง | FUNCH Admin' };
 
 async function ProtectedBookings() {
   await requireAdminPage();
-  return <AdminBookings />;
+  return <BookingsManagement />;
 }
 
 export default function Page() {

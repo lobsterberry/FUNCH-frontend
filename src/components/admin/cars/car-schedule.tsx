@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { adminRequest, type AdminCar } from "@/lib/admin-cars";
+import { adminRequest, type AdminCar } from "@/lib/cars-management";
 import type { LocationItem } from "@/lib/rental";
 import { Dialog } from "@/components/shared/dialog";
 
@@ -64,7 +64,7 @@ export function CarSchedule({
   const load = useCallback(
     () =>
       adminRequest<{ data: Schedule }>(
-        `/api/fleet/cars/${encodeURIComponent(car.id)}/schedule`,
+        `/api/cars/${encodeURIComponent(car.id)}/schedule`,
       )
         .then((result) => {
           setData(result.data);
