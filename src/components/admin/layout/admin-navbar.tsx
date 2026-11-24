@@ -5,6 +5,19 @@ import { useState } from "react";
 import { signOut } from "@/lib/account";
 import { AdminIcon } from "./admin-icon";
 
+type AdminPageLabel = {
+  title: string;
+  badge?: string;
+};
+
+const adminPageLabels: ReadonlyMap<string, AdminPageLabel> = new Map([
+  ["cars", { title: "จัดการข้อมูลรถยนต์", badge: "Cars Across Locations" }],
+  ["bookings", { title: "ระบบอนุมัติการจอง", badge: "Booking Approval System" }],
+  ["members", { title: "จัดการสมาชิก", badge: "Member Management" }],
+  ["reports", { title: "รายงานสรุปยอดจองรถ", badge: "Analytics & Financial Report" }],
+  // ["example", { title: "หน้าตัวอย่าง", badge: "Example Page" }],
+]);
+
 export function AdminNavbar({
   onMenu,
   menuOpen,
@@ -14,9 +27,8 @@ export function AdminNavbar({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const membersPage = pathname.startsWith("/admin/members");
-  const reportsPage = pathname.startsWith("/admin/reports");
-  const bookingsPage = pathname.startsWith("/admin/bookings");
+  const section = pathname.split("/")[2] ?? "";
+  const label = adminPageLabels.get(section);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   async function logout() {
@@ -48,22 +60,12 @@ export function AdminNavbar({
             FUNCH <span className="mx-2">/</span> ระบบหลังบ้าน
           </p>
           <p className="mt-0.5 text-sm font-semibold text-slate-800">
-            {reportsPage
-              ? "รายงานสรุปยอดจองรถ"
-              : membersPage
-                ? "จัดการสมาชิก"
-                : bookingsPage
-                  ? "ระบบอนุมัติการจอง"
-                  : "จัดการข้อมูลรถยนต์"}{" "}
-            <span className="ml-2 hidden rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-normal text-blue-700 sm:inline">
-              {reportsPage
-                ? "Analytics & Financial Report"
-                : membersPage
-                  ? "Member Management"
-                  : bookingsPage
-                    ? "Booking Approval System"
-                    : "Cars Across Locations"}
-            </span>
+            {label?.title ?? "ระบบหลังบ้าน"}{" "}
+            {label?.badge && (
+              <span className="ml-2 hidden rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-normal text-blue-700 sm:inline">
+                {label.badge}
+              </span>
+            )}
           </p>
         </div>
       </div>

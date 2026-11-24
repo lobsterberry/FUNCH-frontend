@@ -80,7 +80,7 @@ export function CarsUnitTable({
               สถานะปัจจุบัน
             </th>
             <th scope="col" className="px-3 py-3 text-right">
-              การจัดการคันรถ
+              การจัดการรถ
             </th>
           </tr>
         </thead>

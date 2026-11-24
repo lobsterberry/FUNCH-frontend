@@ -111,7 +111,7 @@ export function CarForm({
     <Dialog
       wide
       title={
-        car ? `แก้ไขคันรถ · ${car.licensePlate}` : "เพิ่มรถลงสาขา (ทะเบียน)"
+        car ? `แก้ไขรถ · ${car.licensePlate}` : "เพิ่มรถลงสาขา (ทะเบียน)"
       }
       onClose={() => {
         if (!busy) onClose();
