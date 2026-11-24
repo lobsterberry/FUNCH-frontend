@@ -219,7 +219,7 @@ export function CarsModelView({
                           }
                           className="font-medium text-blue-600 hover:underline"
                         >
-                          + เพิ่มคันเข้าสาขานี้
+                          + เพิ่มรถเข้าสาขานี้
                         </button>
                       </div>
                     </div>
