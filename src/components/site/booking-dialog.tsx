@@ -484,7 +484,7 @@ export function BookingDialog({
                     member?.name,
                   )}
                   {field(
-                    "หมายเลขใบขับขี่สากล (International Driving Permit)",
+                    "หมายเลขใบขับขี่หรือใบขับขี่สากล (Driving Permit or International Driving Permit)",
                     "license",
                     "text",
                     "off",
