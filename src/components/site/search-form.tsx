@@ -58,6 +58,7 @@ export function SearchForm({
       return;
     }
     const params = new URLSearchParams();
+    //ป้องกันไม่ให้ข้อมูลจุดคืนรถที่อาจค้างอยู่ใน state ถูกส่งไปใน URL หากผู้ใช้ไม่ได้เลือกคืนรถต่างสาขา
     Object.entries(criteria).forEach(([key, value]) => {
       if (
         value &&

@@ -14,7 +14,7 @@ import { HomeContent } from "./home-content";
 import { Header, Footer } from "./layout/site-header-footer";
 import { useSiteAccount } from "./layout/site-account";
 import { SearchResults } from "./search-results";
-import { CarDetails } from "./rental-dialog";
+import { CarDetails } from "./car-detail-dialog";
 import { Dialog } from "@/components/shared/dialog";
 import { BookingDialog } from "./booking-dialog";
 import { SearchForm } from "./search-form";

@@ -122,7 +122,7 @@ export function BookingReview({
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
           <div>
             <p className="break-all text-sm font-semibold text-blue-700">
-              {booking.bookingNumber}
+              {booking.bookingNumber.toUpperCase()}
             </p>
             <p className="mt-1 text-xs text-slate-500">
               จองเมื่อ {bookingDate(booking.createdAt)} · Asia/Bangkok
