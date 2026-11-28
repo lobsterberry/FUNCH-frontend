@@ -2,8 +2,8 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { RentalDurationBadge } from "./rental-duration-badge";
-import { RentalTimeSelect, selectableRentalTime } from "./rental-time-select";
+import { RentalDurationBadge } from "./duration-badge";
+import { RentalTimeSelect, selectableRentalTime } from "./time-select";
 import {
   getCountry,
   rentalDuration,

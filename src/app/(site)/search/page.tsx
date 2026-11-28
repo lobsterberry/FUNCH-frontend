@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import RentalApp from "@/components/site/rental-app";
+import SearchRental from "@/components/site/search-page";
 
 export const metadata: Metadata = {
   title: "ค้นหารถยนต์ | FUNCH Drive",
@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default function SearchPage() {
   return (
     <Suspense fallback={<div className="min-h-screen bg-slate-50" />}>
-      <RentalApp mode="search" />
+      <SearchRental />
     </Suspense>
   );
 }

@@ -1,10 +1,5 @@
-﻿import { Suspense } from "react";
-import RentalApp from "@/components/site/rental-app";
+﻿import HomeRental from "@/components/site/home-page";
 
 export default function Home() {
-  return (
-    <Suspense fallback={<div className="min-h-screen bg-slate-50" />}>
-      <RentalApp mode="home" />
-    </Suspense>
-  );
+  return <HomeRental />;
 }

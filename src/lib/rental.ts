@@ -76,6 +76,15 @@ export type SearchCriteria = {
   service?: string;
 };
 
+export const emptySearchCriteria: SearchCriteria = {
+  country: "",
+  location: "",
+  pickup_date: "",
+  pickup_time: "",
+  return_date: "",
+  return_time: "",
+};
+
 export function locationLabel(location: LocationItem): string {
   return `${location.cityTh || location.city} - ${location.nameTh || location.name}${location.airportCode ? ` (${location.airportCode} Airport)` : ""}`;
 }

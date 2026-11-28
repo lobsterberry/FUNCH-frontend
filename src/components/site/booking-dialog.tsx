@@ -4,8 +4,9 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Dialog } from "@/components/shared/dialog";
 import { api, ApiError, signIn, type Member } from "@/lib/account";
 import { bookingInstant } from "@/lib/booking-time";
-import { RentalTimeSelect, selectableRentalTime } from "./rental-time-select";
+import { RentalTimeSelect, selectableRentalTime } from "./time-select";
 import {
+  emptySearchCriteria,
   money,
   resolveLocation,
   type Car,
@@ -26,18 +27,9 @@ type Booking = {
   status: string;
 };
 
-const emptyCriteria: SearchCriteria = {
-  country: "",
-  location: "",
-  pickup_date: "",
-  pickup_time: "",
-  return_date: "",
-  return_time: "",
-};
-
 export function BookingDialog({
   car,
-  criteria = emptyCriteria,
+  criteria = emptySearchCriteria,
   countries = [],
   member,
   sessionLoading,

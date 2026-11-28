@@ -12,7 +12,7 @@ import {
   type SearchCriteria,
 } from "@/lib/rental";
 import { CarCard } from "./car-card";
-import { RentalDurationBadge } from "./rental-duration-badge";
+import { RentalDurationBadge } from "./duration-badge";
 
 type Filters = {
   country: string;
